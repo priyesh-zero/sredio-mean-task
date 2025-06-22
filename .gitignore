@@ -1,0 +1,51 @@
+# =============================
+# Global
+# =============================
+node_modules/
+dist/
+tmp/
+temp/
+*.log
+.env
+.env.local
+.env.*.local
+
+# IDE / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# npm / yarn logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =============================
+# Angular (frontend/)
+# =============================
+frontend/.angular/cache/
+frontend/.angular/
+frontend/.env
+frontend/.env.*.local
+frontend/node_modules/
+frontend/dist/
+frontend/.output/
+frontend/.eslintcache
+
+# =============================
+# Node.js (backend/)
+# =============================
+backend/node_modules/
+backend/.env
+backend/.env.*.local
+backend/dist/
+backend/build/
+backend/coverage/
+
+# =============================
+# Logs
+# =============================
+logs/
+*.log
+*.tsbuildinfo

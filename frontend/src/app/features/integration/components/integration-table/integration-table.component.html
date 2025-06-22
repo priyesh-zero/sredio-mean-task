@@ -1,0 +1,46 @@
+<div class="integration-container">
+  <div class="toolbar">
+    <mat-form-field appearance="outline">
+      <mat-label>Integration</mat-label>
+      <mat-select [(ngModel)]="selectedIntegration" (selectionChange)="onIntegrationChange()">
+        <mat-option *ngFor="let integration of integrations" [value]="integration">
+          {{ integration }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Entity</mat-label>
+      <mat-select [(ngModel)]="selectedEntity" (selectionChange)="onEntityChange()">
+        <mat-option *ngFor="let entity of entities" [value]="entity">
+          {{ entity }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Search</mat-label>
+      <input matInput [ngModel]="searchText" (ngModelChange)="onSearchInput($event)" placeholder="Search..." />
+      <button *ngIf="searchText" matSuffix mat-icon-button aria-label="Clear" (click)="clearSearch()">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-form-field>
+  </div>
+
+  <div class="grid-container">
+    <ag-grid-angular class="ag-theme-alpine grid" [theme]="'legacy'" style="width: 100%; height: 400px;"
+      [rowData]="rowData" [columnDefs]="columnDefs" [defaultColDef]="defaultColDef" [domLayout]="'normal'"
+      [animateRows]="true">
+    </ag-grid-angular>
+    <div class="pagination-controls" *ngIf="totalPages > 1">
+      <button mat-button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+        Previous
+      </button>
+      <span>Page {{ currentPage }} of {{ totalPages }}</span>
+      <button mat-button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
+        Next
+      </button>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,128 @@
+.integration-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 16px;
+
+  .integration-header-section {
+    width: 100%;
+  }
+
+  .integration-content-section {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .integration-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+
+    .integration-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+
+      .integration-logo {
+        height: 30px;
+      }
+
+      .success-icon {
+        color: #4caf50;
+      }
+    }
+
+    .integration-info {
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.6);
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+
+      .info-line {
+        line-height: 1.4;
+      }
+    }
+  }
+
+  .integration-body {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 1rem 1.5rem;
+
+    .integration-remove-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+
+      .remove-icon {
+        font-size: 18px;
+      }
+    }
+
+    .integration-connect {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 2rem 1rem;
+      width: 100%;
+
+      .connect-title {
+        margin-top: 1rem;
+        color: #1a237e;
+      }
+
+      .loading-text {
+        margin-top: 0.5rem;
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.6);
+      }
+    }
+  }
+
+  .sync-progress-container {
+    margin-top: 16px;
+    padding: 12px;
+    background: #f6f9fc;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+
+    .sync-message {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+
+      .spinner-icon {
+        animation: spin 1.2s linear infinite;
+        margin-right: 8px;
+        color: #3f51b5;
+      }
+    }
+  }
+}
+
+// Deep styling for Material Expansion Header
+::ng-deep .custom-panel .mat-expansion-panel-header {
+  height: 75px;
+}
+
+// Spinner animation
+@keyframes spin {
+  0% {
+    transform: rotate(0);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}

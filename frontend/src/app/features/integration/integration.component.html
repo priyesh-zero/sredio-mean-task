@@ -1,0 +1,68 @@
+<div class="integration-wrapper">
+  <div class="integration-header-section">
+    <mat-accordion>
+      <mat-expansion-panel class="custom-panel" [expanded]="expanded">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <div class="integration-header">
+              <div class="integration-meta">
+                <img src="assets/images/logo.png" alt="GitHub" class="integration-logo" />
+                <ng-container *ngIf="isConnected">
+                  <mat-icon color="primary" [ngClass]="{ 'success-icon': !isSyncing }">check_circle</mat-icon>
+                  <mat-icon>history</mat-icon>
+                </ng-container>
+              </div>
+              <div class="integration-info" *ngIf="isConnected">
+                <div class="info-line">
+                  {{username}}: Last Synced: {{ lastSynced | date: 'yyyy-MM-dd HH:mm a' }}
+                </div>
+                <div class="info-line">Sync Type: Full</div>
+              </div>
+            </div>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+
+        <div class="integration-body">
+          <ng-container *ngIf="isLoadingStatus; else loadedSection">
+            <div class="integration-connect">
+              <mat-spinner diameter="24"></mat-spinner>
+              <span class="loading-text">Checking integration...</span>
+            </div>
+          </ng-container>
+
+          <ng-template #loadedSection>
+            <ng-container *ngIf="isConnected; else connectSection">
+              <button mat-raised-button color="primary" (click)="removeIntegration()" class="integration-remove-btn">
+                Remove
+                <mat-icon class="remove-icon">logout</mat-icon>
+              </button>
+            </ng-container>
+
+            <ng-template #connectSection>
+              <div class="integration-connect">
+                <button mat-raised-button color="primary" (click)="connectIntegration()">Connect</button>
+                <h3 class="connect-title">Connect Sredio to GitHub</h3>
+              </div>
+            </ng-template>
+          </ng-template>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
+
+  <!-- Sync Progress Display -->
+  <div *ngIf="isSyncing" class="sync-progress-container">
+    <mat-progress-bar mode="determinate" [value]="syncProgressPercent" color="primary">
+    </mat-progress-bar>
+
+    <div class="sync-message">
+      <mat-icon class="spinner-icon">sync</mat-icon>
+      {{ syncMessage || 'Syncing in progress...' }}
+    </div>
+  </div>
+
+  <!-- Table Section (only after sync is complete) -->
+  <div class="integration-content-section" *ngIf="isConnected && !isSyncing">
+    <app-integration-table></app-integration-table>
+  </div>
+</div>
