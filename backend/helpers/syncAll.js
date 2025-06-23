@@ -11,24 +11,15 @@ const GITHUB_API = 'https://api.github.com';
 
 const syncAll = async (token, clientId, githubUserId) => {
   try {
+    // Step 1: Fetch Organizations
     sendToClient(clientId, { stage: 'Fetching organizations...', step: 'ORGS', percent: 10 });
-
     const orgsRes = await axios.get(`${GITHUB_API}/user/orgs`, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    // Flatten orgs
     const orgs = orgsRes.data.map(o => ({
       id: o.id,
       login: o.login,
-      node_id: o.node_id,
-      url: o.url,
-      repos_url: o.repos_url,
-      events_url: o.events_url,
-      hooks_url: o.hooks_url,
-      issues_url: o.issues_url,
-      members_url: o.members_url,
-      public_members_url: o.public_members_url,
       avatar_url: o.avatar_url,
       description: o.description,
       githubUserId,
@@ -37,49 +28,39 @@ const syncAll = async (token, clientId, githubUserId) => {
     await Org.deleteMany({ githubUserId });
     await Org.insertMany(orgs);
 
+    // Step 2: Fetch Repositories
     sendToClient(clientId, { stage: 'Fetching repositories...', step: 'REPOS', percent: 25 });
-
     const allRepos = [];
+
     for (const org of orgs) {
       try {
         const reposRes = await axios.get(`${GITHUB_API}/orgs/${org.login}/repos?per_page=100`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+
         allRepos.push(
           ...reposRes.data.map(r => ({
             id: r.id,
-            node_id: r.node_id,
             name: r.name,
             full_name: r.full_name,
             private: r.private,
             owner_login: r.owner?.login,
-            owner_id: r.owner?.id,
             html_url: r.html_url,
             description: r.description,
-            fork: r.fork,
-            url: r.url,
-            forks_count: r.forks_count,
-            stargazers_count: r.stargazers_count,
-            watchers_count: r.watchers_count,
-            language: r.language,
-            open_issues_count: r.open_issues_count,
             default_branch: r.default_branch,
-            created_at: r.created_at,
-            updated_at: r.updated_at,
-            pushed_at: r.pushed_at,
             githubUserId,
           }))
         );
       } catch (e) {
-        sendToClient(clientId, { stage: `Skipping repos for ${org.login}: ${e.message}` });
+        sendToClient(clientId, { stage: `Error fetching repos for ${org.login}: ${e.message}` });
       }
     }
 
     await Repo.deleteMany({ githubUserId });
     await Repo.insertMany(allRepos);
 
-    sendToClient(clientId, { stage: 'Fetching commits, pulls, and issues...', step: 'DATA', percent: 50 });
-
+    // Step 3: Fetch Commits, Pull Requests, and Issues
+    sendToClient(clientId, { stage: 'Fetching commits, pulls, issues...', step: 'DATA', percent: 50 });
     const allCommits = [], allPulls = [], allIssues = [];
 
     for (const repo of allRepos) {
@@ -91,6 +72,7 @@ const syncAll = async (token, clientId, githubUserId) => {
           axios.get(`${base}/issues?per_page=100&state=all`, { headers: { Authorization: `Bearer ${token}` } }),
         ]);
 
+        // Commits (Changelogs)
         allCommits.push(
           ...commitsRes.data.map(c => ({
             sha: c.sha,
@@ -102,61 +84,48 @@ const syncAll = async (token, clientId, githubUserId) => {
             committer_email: c.commit?.committer?.email,
             committer_date: c.commit?.committer?.date,
             url: c.html_url,
+            repoName: repo.name,
             githubUserId,
           }))
         );
 
+        // Pull Requests
         allPulls.push(
           ...pullsRes.data.map(p => ({
             id: p.id,
             number: p.number,
             state: p.state,
             title: p.title,
-            body: p.body,
-            created_at: p.created_at,
-            updated_at: p.updated_at,
-            closed_at: p.closed_at,
-            merged_at: p.merged_at,
-            merge_commit_sha: p.merge_commit_sha,
             user_login: p.user?.login,
-            user_id: p.user?.id,
             assignee_login: p.assignee?.login,
-            assignee_id: p.assignee?.id,
-            requested_reviewers_logins: p.requested_reviewers?.map(r => r.login) || [],
-            comments: p.comments,
-            commits: p.commits,
-            additions: p.additions,
-            deletions: p.deletions,
-            changed_files: p.changed_files,
+            created_at: p.created_at,
+            merged_at: p.merged_at,
             html_url: p.html_url,
+            repoName: repo.name,
             githubUserId,
           }))
         );
 
+        // Issues
         allIssues.push(
           ...issuesRes.data.map(i => ({
             id: i.id,
             number: i.number,
             title: i.title,
             user_login: i.user?.login,
+            assignee_login: i.assignee?.login,
             state: i.state,
-            locked: i.locked,
-            comments: i.comments,
             created_at: i.created_at,
-            updated_at: i.updated_at,
             closed_at: i.closed_at,
-            pull_request: !!i.pull_request,
             body: i.body,
+            pull_request: !!i.pull_request,
             html_url: i.html_url,
+            repoName: repo.name,
             githubUserId,
           }))
         );
       } catch (e) {
-        if (e.response?.status === 403 && e.response.headers['x-ratelimit-remaining'] === '0') {
-          sendToClient(clientId, { stage: '[FAILED] GitHub rate limit exceeded. Try again later.' });
-          return;
-        }
-        sendToClient(clientId, { stage: `Skipping repo ${repo.name}: ${e.message}` });
+        sendToClient(clientId, { stage: `Error fetching data for ${repo.name}: ${e.message}` });
       }
     }
 
@@ -169,50 +138,48 @@ const syncAll = async (token, clientId, githubUserId) => {
     await Issue.deleteMany({ githubUserId });
     await Issue.insertMany(allIssues);
 
+    // Step 4: Fetch Organization Members
     sendToClient(clientId, { stage: 'Fetching organization members...', step: 'USERS', percent: 80 });
 
-    const allUsers = [];
+    const uniqueUsersMap = new Map();
+
     for (const org of orgs) {
       try {
         const usersRes = await axios.get(`${GITHUB_API}/orgs/${org.login}/members`, {
           headers: { Authorization: `Bearer ${token}` },
         });
-        allUsers.push(
-          ...usersRes.data.map(u => ({
-            id: u.id,
-            login: u.login,
-            node_id: u.node_id,
-            avatar_url: u.avatar_url,
-            gravatar_id: u.gravatar_id,
-            url: u.url,
-            html_url: u.html_url,
-            followers_url: u.followers_url,
-            following_url: u.following_url,
-            gists_url: u.gists_url,
-            starred_url: u.starred_url,
-            subscriptions_url: u.subscriptions_url,
-            organizations_url: u.organizations_url,
-            repos_url: u.repos_url,
-            events_url: u.events_url,
-            received_events_url: u.received_events_url,
-            type: u.type,
-            site_admin: u.site_admin,
-            githubUserId,
-          }))
-        );
+
+        for (const u of usersRes.data) {
+          const key = `${u.id}_${org.login}`; // Composite key: user + org
+          if (!uniqueUsersMap.has(key)) {
+            uniqueUsersMap.set(key, {
+              id: u.id,
+              login: u.login,
+              avatar_url: u.avatar_url,
+              html_url: u.html_url,
+              type: u.type,
+              githubUserId,
+              orgLogin: org.login,
+            });
+          }
+        }
       } catch (e) {
-        sendToClient(clientId, { stage: `Skipping members for ${org.login}: ${e.message}` });
+        sendToClient(clientId, { stage: `Error fetching users for ${org.login}: ${e.message}` });
       }
     }
+
+    const allUsers = Array.from(uniqueUsersMap.values());
 
     await User.deleteMany({ githubUserId });
     await User.insertMany(allUsers);
 
-    sendToClient(clientId, { stage: '[DONE] Sync completed successfully.', percent: 100, step: 'DONE' });
+
+    // Done
+    sendToClient(clientId, { stage: '[DONE] Sync completed successfully.', step: 'DONE', percent: 100 });
 
   } catch (err) {
     console.error('[SYNC ERROR]', err);
-    sendToClient(clientId, { stage: `[FAILED] Sync failed: ${err.message}`, step: 'FAILED' });
+    sendToClient(clientId, { stage: `[FAILED] ${err.message}`, step: 'FAILED' });
   }
 };
 

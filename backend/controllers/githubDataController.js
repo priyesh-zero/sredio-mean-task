@@ -52,12 +52,12 @@ exports.getCollectionData = async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
     const limitVal = parseInt(limit);
 
-    // Get only string fields from the schema for safe $regex matching
-    const excludedFields = ['_id', '__v'];
+    const excludedFields = ['_id', 'id', 'githubUserId', '__v'];
+
+    // Get only string fields from the schema for $regex filtering
     const stringFields = Object.entries(Model.schema.paths)
       .filter(([key, type]) => type.instance === 'String' && !excludedFields.includes(key))
       .map(([key]) => key);
-
 
     const query = {};
 
@@ -71,10 +71,17 @@ exports.getCollectionData = async (req, res) => {
       }));
     }
 
-    const docs = await Model.find(query).skip(skip).limit(limitVal);
+    // Perform query
+    const docs = await Model.find(query).skip(skip).limit(limitVal).lean();
     const total = await Model.countDocuments(query);
 
-    const data = docs.map((doc) => doc.toObject());
+    // Remove unwanted fields
+    const data = docs.map(doc => {
+      excludedFields.forEach(field => delete doc[field]);
+      return doc;
+    });
+
+    // Return only visible fields
     const fields = data.length ? Object.keys(data[0]) : [];
 
     res.json({ fields, data, total });

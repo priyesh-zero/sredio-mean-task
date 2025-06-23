@@ -23,6 +23,7 @@ export class IntegrationTableComponent implements OnInit, OnDestroy {
     resizable: true,
     sortable: true,
     filter: 'agTextColumnFilter',
+    floatingFilter: true,
     minWidth: 150,
     flex: 1
   };
