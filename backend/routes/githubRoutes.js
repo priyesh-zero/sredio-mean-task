@@ -6,11 +6,11 @@ const dataController = require('../controllers/githubDataController');
 
 // OAuth
 router.get('/', authController.startGithubOAuth);
-router.get('/callback', authController.githubCallback);
+router.get('/callback', authController.handleGithubOAuthCallback);
+router.get('/auth-status', authController.authStatus);
+router.delete('/logout', authController.logout);
 
 // Data
-router.get('/status', dataController.getStatus);
-router.delete('/', dataController.removeIntegration);
 router.get('/collection-data', dataController.getCollectionData);
 
 module.exports = router;

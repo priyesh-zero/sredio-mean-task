@@ -2,8 +2,9 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 
 const routes: Routes = [
+  { path: '', redirectTo: 'integration', pathMatch: 'full' },
   {
-    path: '',
+    path: 'integration',
     loadChildren: () =>
       import('./features/integration/integration.module').then((m) => m.IntegrationModule),
   }

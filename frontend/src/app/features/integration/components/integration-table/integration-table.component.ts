@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ColDef } from 'ag-grid-community';
 import { Subject, debounceTime, takeUntil } from 'rxjs';
 import { IntegrationService } from '../../services/integration.service';
+import { flattenObject } from '../../utils/data-flattener';
 
 @Component({
   selector: 'app-integration-table',
@@ -12,10 +13,10 @@ import { IntegrationService } from '../../services/integration.service';
 export class IntegrationTableComponent implements OnInit, OnDestroy {
 
   integrations: string[] = ['GitHub'];
-  entities: string[] = ['Commits', 'Pulls', 'Issues', 'Orgs', 'Repos', 'Users'];
+  entities: string[] = ['Orgs', 'Repos', 'Users', 'Commits', 'Pulls', 'Issues'];
 
   selectedIntegration = 'GitHub';
-  selectedEntity = 'Commits';
+  selectedEntity = 'Orgs';
   searchText = '';
 
   columnDefs: ColDef[] = [];
@@ -24,7 +25,7 @@ export class IntegrationTableComponent implements OnInit, OnDestroy {
     sortable: true,
     filter: 'agTextColumnFilter',
     floatingFilter: true,
-    minWidth: 150,
+    minWidth: 250,
     flex: 1
   };
 
@@ -81,11 +82,13 @@ export class IntegrationTableComponent implements OnInit, OnDestroy {
       .getCollectionData(this.selectedEntity, this.currentPage, this.pageSize, this.searchText)
       .subscribe({
         next: (res) => {
-          this.columnDefs = res.fields.map((field) => ({
-            field,
-            headerName: this.toTitleCase(field)
-          }));
-          this.rowData = res.data;
+          // Flatten each row of the response
+          const flattenedData = res.data.map(item => flattenObject(item));
+          // Generate columns using flattened data
+          this.columnDefs = this.integrationSvc.generateColumnDefs(flattenedData);
+          // Assign the flattened data to rowData
+          this.rowData = flattenedData;
+          console.log('Flattened row sample:', flattenedData[0]);
           this.totalRecords = res.total;
           this.totalPages = Math.ceil(this.totalRecords / this.pageSize);
         },
@@ -96,10 +99,6 @@ export class IntegrationTableComponent implements OnInit, OnDestroy {
           this.totalPages = 0;
         }
       });
-  }
-
-  toTitleCase(str: string): string {
-    return str.replace(/_/g, ' ').replace(/\b\w/g, (char) => char.toUpperCase());
   }
 
   ngOnDestroy(): void {

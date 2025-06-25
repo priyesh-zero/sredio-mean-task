@@ -1,11 +1,6 @@
 import { Component, NgZone } from '@angular/core';
 import { IntegrationService } from './services/integration.service';
-
-interface SyncMessage {
-  label: string;
-  done: boolean;
-}
-
+import { clearClientId, getClientId } from './utils/sync-client';
 @Component({
   selector: 'app-integration',
   standalone: false,
@@ -21,53 +16,82 @@ export class IntegrationComponent {
   isSyncing: boolean = false;
   syncMessage: string = '';
   syncProgressPercent: number = 0;
+  errorMessage: string = '';
 
   constructor(private ngZone: NgZone, private integrationSvc: IntegrationService) { }
 
   ngOnInit() {
-    this.checkStatus();
+    const code = new URLSearchParams(window.location.search).get('code');
+    if (code) {
+      this.handleGithubCallback(code);
+    } else {
+      this.checkStatus();
+    }
+    const existingClientId = getClientId();
+    if (existingClientId) {
+      this.listenToSyncProgress(existingClientId, false); // Don't re-trigger sync
+    }
   }
 
-  connectIntegration() {
-    const that = this;
-    this.integrationSvc.connect();
+  connect() {
+    this.integrationSvc.initiateGithubLogin();
+  }
 
-    window.addEventListener(
-      'message',
-      (event) => {
-        if (event.origin !== 'http://localhost:3000') return;
-
-        if (event.data.success) {
-          that.isConnected = true;
-          that.lastSynced = new Date(event.data.data.connectedAt);
-          that.username = event.data.data.username;
-          that.listenToSyncProgress();
-        } else {
-          console.error('GitHub OAuth failed', event.data.error);
+  handleGithubCallback(code: string) {
+    this.integrationSvc.authenticateWithGithubCode(code)
+      .subscribe({
+        next: (res: any) => {
+          this.isLoadingStatus = false;
+          this.isConnected = res.success;
+          this.username = res.username;
+          this.lastSynced = res.connectedAt;
+          // Cleanup the URL
+          const url = new URL(window.location.href);
+          url.searchParams.delete('code');
+          window.history.replaceState({}, '', url.toString());
+        },
+        error: (err) => {
+          this.isLoadingStatus = false;
+          this.isConnected = false;
+          this.username = '';
+          this.lastSynced = null;
+          this.errorMessage = 'GitHub authentication failed. Please try again.';
+          console.error('GitHub auth failed:', err);
+        },
+        complete: () => {
+          // If authentication was successful, start listening to sync progress
+          this.errorMessage = '';
+          this.expanded = false;
+          this.isLoadingStatus = false;
+          const clientId = getClientId(true);
+          this.listenToSyncProgress(clientId, true); // Trigger sync after auth
         }
-      },
-      { once: true }
-    );
+      });
   }
 
-
-  removeIntegration() {
-    this.integrationSvc.removeIntegration().subscribe(() => {
-      this.isConnected = false;
-      this.username = '';
+  disconnect() {
+    this.integrationSvc.logoutGithubIntegration().subscribe({
+      next: () => {
+        this.isConnected = false;
+      },
+      error: (err) => {
+        this.errorMessage = 'Logout failed. Please try again.';
+        console.error('Logout failed', err);
+      }
     });
   }
 
   checkStatus() {
     this.isLoadingStatus = true;
-    this.integrationSvc.getStatus().subscribe({
+    this.integrationSvc.getAuthStatus().subscribe({
       next: (res: any) => {
-        this.isConnected = res.connected;
+        this.isConnected = res.isConnected;
         this.username = res.username;
         this.lastSynced = res.connectedAt;
-        this.expanded = !res.connected;
+        this.expanded = !res.isConnected;
       },
       error: () => {
+        this.isLoadingStatus = false;
         this.isConnected = false;
         this.username = '';
       },
@@ -77,14 +101,15 @@ export class IntegrationComponent {
     });
   }
 
-  listenToSyncProgress() {
-    const clientId = Date.now().toString();
+  listenToSyncProgress(clientId: string, triggerSync: boolean) {
     this.isSyncing = true;
     this.expanded = false;
 
-    this.integrationSvc.startSync(clientId).subscribe();
+    if (triggerSync) {
+      this.integrationSvc.startDataSync(clientId).subscribe();
+    }
 
-    const eventSource = this.integrationSvc.createSyncEventSource(clientId);
+    const eventSource = this.integrationSvc.createSyncStream(clientId);
 
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -93,8 +118,12 @@ export class IntegrationComponent {
         if (data.stage) this.syncMessage = data.stage;
         if (data.percent !== undefined) this.syncProgressPercent = data.percent;
 
-        if (data.stage?.includes('[DONE]') || data.stage?.includes('[FAILED]')) {
+        const isDone = data.stage?.includes('[DONE]');
+        const isFailed = data.stage?.includes('[FAILED]');
+
+        if (isDone || isFailed) {
           eventSource.close();
+          clearClientId();
           this.isSyncing = false;
         }
       });
@@ -106,6 +135,5 @@ export class IntegrationComponent {
       this.isSyncing = false;
     };
   }
-
 
 }

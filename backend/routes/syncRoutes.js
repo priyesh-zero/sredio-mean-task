@@ -6,6 +6,6 @@ const {
 } = require('../controllers/syncController');
 
 router.get('/stream', sseSyncStream);
-router.post('/start', startSync);
+router.get('/start', startSync);
 
 module.exports = router;

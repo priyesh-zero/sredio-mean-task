@@ -6,33 +6,6 @@ const Org = require('../models/GitHubOrg');
 const Repo = require('../models/GitHubRepo');
 const User = require('../models/GitHubUser');
 
-exports.getStatus = async (req, res) => {
-  try {
-    const integration = await Integration.findOne();
-    if (integration) {
-      res.json({
-        connected: true,
-        username: integration.username,
-        connectedAt: integration.connectedAt
-      });
-    } else {
-      res.json({ connected: false });
-    }
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
-
-exports.removeIntegration = async (req, res) => {
-  try {
-    await Integration.deleteOne();
-    res.json({ success: true, message: 'Integration removed' });
-  } catch (err) {
-    console.error('Error removing integration:', err.message);
-    res.status(500).json({ success: false, message: 'Failed to remove integration' });
-  }
-};
-
 exports.getCollectionData = async (req, res) => {
   const { collection, page = 1, limit = 20, searchText = '' } = req.query;
 

@@ -1,3 +1,4 @@
+const jwt = require('jsonwebtoken');
 const { addClient, removeClient } = require('../helpers/syncStreams');
 const syncAll = require('../helpers/syncAll');
 const Integration = require('../models/Integration');
@@ -19,13 +20,26 @@ exports.sseSyncStream = (req, res) => {
 };
 
 exports.startSync = async (req, res) => {
-  const clientId = req.body.clientId;
-  const integration = await Integration.findOne();
-  if (!integration) {
-    return res.status(400).json({ success: false, message: 'No integration found' });
+  try {
+    const token = req.cookies.auth_token;
+    if (!token) return res.status(401).json({ success: false, message: 'Not authenticated' });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const githubId = decoded.githubId;
+
+    const integration = await Integration.findOne({ githubId });
+    if (!integration) {
+      return res.status(400).json({ success: false, message: 'No integration found for this user' });
+    }
+
+    const clientId = req.query.id;
+    const accessToken = integration.accessToken;
+
+    syncAll(accessToken, clientId, githubId);
+
+    res.json({ success: true, message: 'Sync started' });
+  } catch (err) {
+    console.error('Sync Error:', err);
+    res.status(500).json({ success: false, message: 'Server error during sync' });
   }
-  const accessToken = integration.accessToken;
-  const githubUserId = integration.githubId;
-  syncAll(accessToken, clientId, githubUserId);
-  res.json({ success: true, message: 'Sync started' });
 };

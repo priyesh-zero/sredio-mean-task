@@ -1,5 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { ColDef } from 'ag-grid-community';
+import { flattenObject, formatHeaderName } from '../utils/data-flattener';
 
 @Injectable({ providedIn: 'root' })
 export class IntegrationService {
@@ -7,48 +9,47 @@ export class IntegrationService {
 
   constructor(private http: HttpClient) { }
 
-  getStatus() {
-    return this.http.get(`${this.api}/auth/github/status`);
+  // -----------------------------
+  // Authentication Methods
+  // -----------------------------
+
+  initiateGithubLogin(): void {
+    window.location.href = `${this.api}/auth/github`;
   }
 
-  removeIntegration() {
-    return this.http.delete(`${this.api}/auth/github`);
+  getAuthStatus() {
+    return this.http.get(`${this.api}/auth/github/auth-status`, {
+      withCredentials: true
+    });
   }
 
-  connect(): Window | null {
-    const width = 600;
-    const height = 600;
-
-    const left = window.screenX + (window.outerWidth - width) / 2;
-    const top = window.screenY + (window.outerHeight - height) / 2;
-
-    const features = [
-      `width=${width}`,
-      `height=${height}`,
-      `left=${left}`,
-      `top=${top}`,
-      'resizable=no',
-      'scrollbars=no',
-      'toolbar=no',
-      'menubar=no',
-      'location=no',
-      'status=no'
-    ].join(',');
-
-    return window.open(`${this.api}/auth/github`, '_blank', features);
+  authenticateWithGithubCode(code: string) {
+    return this.http.get(`${this.api}/auth/github/callback?code=${code}`, {
+      withCredentials: true
+    });
   }
+
+  logoutGithubIntegration() {
+    return this.http.delete(`${this.api}/auth/github/logout`, {
+      withCredentials: true
+    });
+  }
+
+  // -----------------------------
+  // Data Fetching Methods
+  // -----------------------------
 
   getCollectionData(
     collection: string,
-    page: number = 0,
-    limit: number = 20,
-    searchText: string = ''
+    page = 0,
+    limit = 20,
+    searchText = ''
   ) {
     const params = new HttpParams()
       .set('collection', collection)
       .set('page', page.toString())
       .set('limit', limit.toString())
-      .set('searchText', searchText.toString());
+      .set('searchText', searchText);
 
     return this.http.get<{
       fields: string[];
@@ -57,13 +58,37 @@ export class IntegrationService {
     }>(`${this.api}/auth/github/collection-data`, { params });
   }
 
+  generateColumnDefs(data: any[]): ColDef[] {
+    if (!data?.length) return [];
 
-  createSyncEventSource(clientId: string): EventSource {
+    const sample = flattenObject(
+      data.reduce((a, b) =>
+        Object.keys(flattenObject(b)).length > Object.keys(flattenObject(a)).length ? b : a
+      )
+    );
+
+    return Object.keys(sample).map((key) => ({
+      field: key,
+      headerName: formatHeaderName(key),
+      resizable: true,
+      sortable: true,
+      filter: true,
+      tooltipField: key,
+      valueGetter: (params) => params.data[key]
+    }));
+  }
+
+  // -----------------------------
+  // Sync Methods (SSE + Trigger)
+  // -----------------------------
+
+  createSyncStream(clientId: string): EventSource {
     return new EventSource(`${this.api}/sync/stream?id=${clientId}`);
   }
 
-  startSync(clientId: string) {
-    return this.http.post(`${this.api}/sync/start`, { clientId });
+  startDataSync(clientId: string) {
+    return this.http.get(`${this.api}/sync/start?id=${clientId}`, {
+      withCredentials: true
+    });
   }
-
 }
