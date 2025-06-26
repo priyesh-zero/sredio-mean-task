@@ -42,7 +42,7 @@
     <ag-grid-angular class="ag-theme-alpine grid" [theme]="'legacy'" style="width: 100%;" [rowData]="rowData"
       [columnDefs]="columnDefs" [defaultColDef]="defaultColDef" [domLayout]="'normal'" [animateRows]="true">
     </ag-grid-angular>
-    <div class="pagination-controls" *ngIf="totalPages > 1">
+    <div class="pagination-controls" >
       <div style="display: flex; align-items: center; gap: 16px;">
         <span class="record-range">
           {{

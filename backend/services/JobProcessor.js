@@ -100,7 +100,7 @@ class JobProcessor {
 
     for (const orgData of orgs) {
       const org = await Organization.findOneAndUpdate(
-        { userId: job.userId, id: orgData.id },
+        { userId: job.userId, login: orgData.login },
         {
           ...orgData,
           userId: job.userId,
@@ -146,7 +146,7 @@ class JobProcessor {
       user,
       job,
       OrganizationMember,
-      "id",
+      "login",
     );
 
     // If there might be more commits, queue another job
@@ -183,18 +183,18 @@ class JobProcessor {
       user,
       job,
       Repository,
-      "id",
+      "full_name",
     );
 
     for (const repoData of allRepos) {
       // Queue commits sync for this repository
       const queue = JobQueue.getInstance();
-      // await queue.add(
-      //   "sync-commits",
-      //   job.userId,
-      //   { repositoryId: repoData._id },
-      //   { priority: 3 },
-      // );
+      await queue.add(
+        "sync-commits",
+        job.userId,
+        { repositoryId: repoData._id },
+        { priority: 3 },
+      );
       await queue.add(
         "sync-pulls",
         job.userId,
@@ -249,7 +249,7 @@ class JobProcessor {
       user,
       job,
       Commit,
-      "sha",
+      "url",
     );
 
     // If there might be more commits, queue another job
@@ -290,7 +290,7 @@ class JobProcessor {
       user,
       job,
       Issue,
-      "id",
+      "url",
     );
 
     // If there might be more commits, queue another job
@@ -331,7 +331,7 @@ class JobProcessor {
       user,
       job,
       Pull,
-      "id",
+      "url",
     );
 
     // If there might be more commits, queue another job
@@ -371,7 +371,7 @@ class JobProcessor {
       user,
       job,
       Changelog,
-      "id",
+      "url",
     );
 
     // If there might be more commits, queue another job
@@ -397,3 +397,4 @@ class JobProcessor {
 }
 
 module.exports = JobProcessor;
+;

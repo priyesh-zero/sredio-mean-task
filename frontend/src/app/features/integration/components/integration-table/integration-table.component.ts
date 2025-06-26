@@ -8,12 +8,19 @@ import { flattenObject } from '../../utils/data-flattener';
   selector: 'app-integration-table',
   standalone: false,
   templateUrl: './integration-table.component.html',
-  styleUrls: ['./integration-table.component.scss']
+  styleUrls: ['./integration-table.component.scss'],
 })
 export class IntegrationTableComponent implements OnInit, OnDestroy {
-
   integrations: string[] = ['GitHub'];
-  entities: string[] = ['Orgs', 'Repos', 'Users', 'Commits', 'Pulls', 'Issues'];
+  entities: string[] = [
+    'Orgs',
+    'Repos',
+    'Users',
+    'Commits',
+    'Pulls',
+    'Issues',
+    'Changelog',
+  ];
 
   selectedIntegration = 'GitHub';
   selectedEntity = 'Orgs';
@@ -26,7 +33,7 @@ export class IntegrationTableComponent implements OnInit, OnDestroy {
     filter: 'agTextColumnFilter',
     floatingFilter: true,
     minWidth: 250,
-    flex: 1
+    flex: 1,
   };
 
   rowData: any[] = [];
@@ -38,7 +45,7 @@ export class IntegrationTableComponent implements OnInit, OnDestroy {
   private searchSubject = new Subject<string>();
   private destroy$ = new Subject<void>();
 
-  constructor(private integrationSvc: IntegrationService) { }
+  constructor(private integrationSvc: IntegrationService) {}
 
   ngOnInit(): void {
     this.fetchCollectionData();
@@ -59,7 +66,6 @@ export class IntegrationTableComponent implements OnInit, OnDestroy {
   onEntityChange(): void {
     this.currentPage = 1;
     this.fetchCollectionData();
-
   }
 
   onSearchInput(value: string): void {
@@ -79,13 +85,19 @@ export class IntegrationTableComponent implements OnInit, OnDestroy {
 
   fetchCollectionData(): void {
     this.integrationSvc
-      .getCollectionData(this.selectedEntity, this.currentPage, this.pageSize, this.searchText)
+      .getCollectionData(
+        this.selectedEntity,
+        this.currentPage,
+        this.pageSize,
+        this.searchText,
+      )
       .subscribe({
         next: (res) => {
           // Flatten each row of the response
-          const flattenedData = res.data.map(item => flattenObject(item));
+          const flattenedData = res.data.map((item) => flattenObject(item));
           // Generate columns using flattened data
-          this.columnDefs = this.integrationSvc.generateColumnDefs(flattenedData);
+          this.columnDefs =
+            this.integrationSvc.generateColumnDefs(flattenedData);
           // Assign the flattened data to rowData
           this.rowData = flattenedData;
           this.totalRecords = res.total;
@@ -96,7 +108,7 @@ export class IntegrationTableComponent implements OnInit, OnDestroy {
           this.rowData = [];
           this.totalRecords = 0;
           this.totalPages = 0;
-        }
+        },
       });
   }
 

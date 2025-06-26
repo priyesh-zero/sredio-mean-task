@@ -4,15 +4,15 @@
       <mat-expansion-panel class="custom-panel" [expanded]="expanded">
         <mat-expansion-panel-header>
           <mat-panel-title>
-            <div class="integration-header" *ngIf="user.isConnected">
+            <div class="integration-header" >
               <div class="integration-meta">
                 <img src="assets/images/logo.png" alt="GitHub" class="integration-logo" />
-                <ng-container>
+                <ng-container *ngIf="user.isConnected">
                   <mat-icon color="primary" class="success-icon">check_circle</mat-icon>
                   <mat-icon>history</mat-icon>
                 </ng-container>
               </div>
-              <div class="integration-info">
+              <div class="integration-info" *ngIf="user.isConnected">
                 <div class="info-line">
                   {{ user.username }}: Last Synced: {{ user.lastSynced | date: 'yyyy-MM-dd HH:mm a' }}
                 </div>
@@ -52,17 +52,17 @@
   </div>
 
   <!-- Sync Progress Display -->
-  <div *ngIf="sync.isSyncing" class="sync-progress-container">
-    <mat-progress-bar mode="determinate" [value]="sync.progressPercent" color="primary"></mat-progress-bar>
-
-    <div class="sync-message">
-      <mat-icon class="spinner-icon">sync</mat-icon>
-      {{ sync.message || 'Syncing in progress...' }}
-    </div>
-  </div>
+  <!-- <div *ngIf="sync.isSyncing" class="sync-progress-container"> -->
+  <!--   <mat-progress-bar mode="determinate" [value]="sync.progressPercent" color="primary"></mat-progress-bar> -->
+  <!---->
+  <!--   <div class="sync-message"> -->
+  <!--     <mat-icon class="spinner-icon">sync</mat-icon> -->
+  <!--     {{ sync.message || 'Syncing in progress...' }} -->
+  <!--   </div> -->
+  <!-- </div> -->
 
   <!-- Table Section (only after sync is complete) -->
-  <div class="integration-content-section" *ngIf="user.isConnected && !sync.isSyncing">
+  <div class="integration-content-section" *ngIf="user.isConnected">
     <app-integration-table></app-integration-table>
   </div>
 </div>
