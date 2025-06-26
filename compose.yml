@@ -1,0 +1,66 @@
+version: "3.8"
+
+services:
+  angular:
+    container_name: angular
+    image: node:lts-slim
+    ports:
+      - "4200:4200" # Adjust if needed for your dev server's port
+    volumes:
+      - ./frontend:/app # Bind mount the current directory
+    environment:
+      - NODE_ENV=development
+    user: "1000:1000" # Run as non-root user
+    working_dir: /app # Set the working directory
+    entrypoint: [
+        "sh",
+        "-c",
+        "if [ ! -d node_modules ]; then yarn install; fi && yarn start",
+      ] # Install dependencies if node_modules is missing
+
+  express:
+    container_name: express
+    image: node:lts-slim
+    ports:
+      - "3000:3000" # Adjust if needed for your dev server's port
+    volumes:
+      - ./backend:/app # Bind mount the current directory
+    environment:
+      - NODE_ENV=development
+    user: "1000:1000" # Run as non-root user
+    working_dir: /app # Set the working directory
+    entrypoint: [
+        "sh",
+        "-c",
+        "if [ ! -d node_modules ]; then yarn install; fi && yarn dev",
+      ] # Install dependencies if node_modules is missing
+
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=pass123
+      - MONGO_INITDB_DATABASE=integrations
+    volumes:
+      - ./database/db:/data/db
+    restart: unless-stopped
+
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    environment:
+      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
+      - ME_CONFIG_MONGODB_ADMINPASSWORD=pass123
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=admin123
+    depends_on:
+      - mongodb
+    ports:
+      - 8081:8081
+
+networks:
+  mongodb_network:
+    name: mongodb_network

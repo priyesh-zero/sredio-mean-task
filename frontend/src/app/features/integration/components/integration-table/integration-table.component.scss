@@ -1,63 +1,104 @@
 .integration-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  
+  .table-header-filters {
     display: flex;
-    flex-direction: column;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
     gap: 16px;
   
-    .toolbar {
+    .filter-group-left,
+    .filter-group-right {
       display: flex;
       flex-wrap: wrap;
-      gap: 16px;
-  
-      mat-form-field {
-        min-width: 200px;
-      }
-  
-      .search-field {
-        flex: 1;
-        min-width: 250px;
-      }
+      align-items: center;
+      gap: 24px;
     }
   
-    .grid-container {
+    .filter-item {
       display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      width: 100%;
-    
-      .grid {
-        width: 100%;
-        height: 400px;
-        border-radius: 6px;
-        overflow: hidden;
-      }
-    
-      .pagination-controls {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        gap: 12px;
+      align-items: center;
+      gap: 8px;
+  
+      .filter-label {
+        font-weight: 500;
         font-size: 14px;
-    
-        button {
-          min-width: 80px;
-        }
-    
-        span {
-          font-weight: 500;
-          color: #333;
-        }
+        color: #555;
+        white-space: nowrap;
+        margin-bottom: 16px;
       }
     }
-  }
   
-  @media (max-width: 600px) {
-    .integration-container {
-      .toolbar {
+    @media (max-width: 768px) {
+      flex-direction: column;
+      align-items: stretch;
+  
+      .filter-group-left,
+      .filter-group-right {
         flex-direction: column;
-        mat-form-field {
+        width: 100%;
+        gap: 12px;
+      }
+  
+      .filter-item {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+        .filter-label {
+          margin-bottom: 0;
+        }
+  
+        .filter-field {
           width: 100%;
         }
       }
     }
   }
+  
+  
+  .grid-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%;
+  
+    .grid {
+      width: 100%;
+      height: calc(100vh - 295px);
+      max-height: 940px;
+      overflow: hidden;
+    }
+  
+    .pagination-controls {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 12px;
+      font-size: 14px;
+  
+      button {
+        min-width: 80px;
+      }
+  
+      span {
+        font-weight: 500;
+        color: #333;
+      }
+    }
+  }
+}
+  
+@media (max-width: 600px) {
+  .integration-container {
+    .toolbar {
+      flex-direction: column;
+      mat-form-field {
+        width: 100%;
+      }
+    }
+  }
+}
   

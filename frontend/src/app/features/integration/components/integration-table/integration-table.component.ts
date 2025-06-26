@@ -88,7 +88,6 @@ export class IntegrationTableComponent implements OnInit, OnDestroy {
           this.columnDefs = this.integrationSvc.generateColumnDefs(flattenedData);
           // Assign the flattened data to rowData
           this.rowData = flattenedData;
-          console.log('Flattened row sample:', flattenedData[0]);
           this.totalRecords = res.total;
           this.totalPages = Math.ceil(this.totalRecords / this.pageSize);
         },
