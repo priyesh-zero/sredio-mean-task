@@ -9,7 +9,7 @@ import { GithubAuthResponse } from '../models/integration.model';
 export class IntegrationService {
   private api = 'http://localhost:3000';
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {}
 
   // -----------------------------
   // Authentication Methods
@@ -20,20 +20,26 @@ export class IntegrationService {
   }
 
   getAuthStatus(): Observable<GithubAuthResponse> {
-    return this.http.get<GithubAuthResponse>(`${this.api}/auth/github/auth-status`, {
-      withCredentials: true
-    });
+    return this.http.get<GithubAuthResponse>(
+      `${this.api}/auth/github/auth-status`,
+      {
+        withCredentials: true,
+      },
+    );
   }
 
   authenticateWithGithubCode(code: string): Observable<GithubAuthResponse> {
-    return this.http.get<GithubAuthResponse>(`${this.api}/auth/github/callback?code=${code}`, {
-      withCredentials: true
-    });
+    return this.http.get<GithubAuthResponse>(
+      `${this.api}/auth/github/callback?code=${code}`,
+      {
+        withCredentials: true,
+      },
+    );
   }
 
   logoutGithubIntegration(): Observable<any> {
     return this.http.delete(`${this.api}/auth/github/logout`, {
-      withCredentials: true
+      withCredentials: true,
     });
   }
 
@@ -41,12 +47,7 @@ export class IntegrationService {
   // Data Fetching Methods
   // -----------------------------
 
-  getCollectionData(
-    collection: string,
-    page = 0,
-    limit = 20,
-    searchText = ''
-  ) {
+  getCollectionData(collection: string, page = 0, limit = 20, searchText = '') {
     const params = new HttpParams()
       .set('collection', collection)
       .set('page', page.toString())
@@ -57,7 +58,7 @@ export class IntegrationService {
       fields: string[];
       data: any[];
       total: number;
-    }>(`${this.api}/auth/github/collection-data`, { params });
+    }>(`${this.api}/github/collection`, { params, withCredentials: true });
   }
 
   generateColumnDefs(data: any[]): ColDef[] {
@@ -65,16 +66,23 @@ export class IntegrationService {
 
     const sample = flattenObject(
       data.reduce((a, b) =>
-        Object.keys(flattenObject(b)).length > Object.keys(flattenObject(a)).length ? b : a
-      )
+        Object.keys(flattenObject(b)).length >
+        Object.keys(flattenObject(a)).length
+          ? b
+          : a,
+      ),
     );
 
     return Object.keys(sample).map((key) => {
       const value = sample[key];
 
       const isImage = typeof value === 'string' && value.includes('avatar');
-      const isUrl = typeof value === 'string' && /^https?:\/\//.test(value) && !isImage;
-      const isEnabledField = typeof value === 'string' && (String(value).toLowerCase() === 'enabled' || String(value).toLowerCase() === 'disabled');
+      const isUrl =
+        typeof value === 'string' && /^https?:\/\//.test(value) && !isImage;
+      const isEnabledField =
+        typeof value === 'string' &&
+        (String(value).toLowerCase() === 'enabled' ||
+          String(value).toLowerCase() === 'disabled');
       const isBoolean = typeof value === 'boolean';
 
       return {
@@ -121,7 +129,7 @@ export class IntegrationService {
           }
 
           return val;
-        }
+        },
       };
     });
   }
@@ -130,13 +138,16 @@ export class IntegrationService {
   // Sync Methods (SSE + Trigger)
   // -----------------------------
 
-  createSyncStream(clientId: string): EventSource {
-    return new EventSource(`${this.api}/sync/stream?id=${clientId}`);
-  }
-
   startDataSync(clientId: string) {
     return this.http.get(`${this.api}/sync/start?id=${clientId}`, {
-      withCredentials: true
+      withCredentials: true,
+    });
+  }
+
+  // job api
+  startUsersync(): Observable<any> {
+    return this.http.get(`${this.api}/jobs/start-sync`, {
+      withCredentials: true,
     });
   }
 }

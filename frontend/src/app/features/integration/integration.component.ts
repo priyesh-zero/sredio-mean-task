@@ -4,14 +4,14 @@ import { clearClientId, getClientId } from './utils/sync-client';
 import {
   GithubAuthResponse,
   UserAuthState,
-  SyncStatus
+  SyncStatus,
 } from './models/integration.model';
 
 @Component({
   selector: 'app-integration',
   standalone: false,
   templateUrl: './integration.component.html',
-  styleUrls: ['./integration.component.scss']
+  styleUrls: ['./integration.component.scss'],
 })
 export class IntegrationComponent {
   user: UserAuthState = {
@@ -19,21 +19,21 @@ export class IntegrationComponent {
     isLoading: true,
     username: '',
     lastSynced: null,
-    errorMessage: ''
+    errorMessage: '',
   };
 
   sync: SyncStatus = {
     isSyncing: false,
     message: '',
-    progressPercent: 0
+    progressPercent: 0,
   };
 
   expanded = true;
 
   constructor(
     private ngZone: NgZone,
-    private integrationSvc: IntegrationService
-  ) { }
+    private integrationSvc: IntegrationService,
+  ) {}
 
   ngOnInit(): void {
     const code = new URLSearchParams(window.location.search).get('code');
@@ -42,11 +42,6 @@ export class IntegrationComponent {
       this.handleGithubCallback(code);
     } else {
       this.checkStatus();
-    }
-
-    const existingClientId = getClientId();
-    if (existingClientId) {
-      this.listenToSyncProgress(existingClientId, false);
     }
   }
 
@@ -60,7 +55,7 @@ export class IntegrationComponent {
       error: (err) => {
         this.user.errorMessage = 'Logout failed. Please try again.';
         console.error('Logout failed', err);
-      }
+      },
     });
   }
 
@@ -75,7 +70,7 @@ export class IntegrationComponent {
         this.expanded = !res.isConnected;
       },
       error: () => this.resetAuthState(),
-      complete: () => (this.user.isLoading = false)
+      complete: () => (this.user.isLoading = false),
     });
   }
 
@@ -83,43 +78,8 @@ export class IntegrationComponent {
     this.integrationSvc.authenticateWithGithubCode(code).subscribe({
       next: (res: GithubAuthResponse) => this.setAuthSuccess(res),
       error: (err) => this.handleAuthError(err),
-      complete: () => this.completeAuthAndStartSync()
+      complete: () => this.completeAuthAndStartSync(),
     });
-  }
-
-  listenToSyncProgress(clientId: string, triggerSync: boolean): void {
-    this.sync.isSyncing = true;
-    this.expanded = false;
-
-    if (triggerSync) {
-      this.integrationSvc.startDataSync(clientId).subscribe();
-    }
-
-    const eventSource = this.integrationSvc.createSyncStream(clientId);
-
-    eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-
-      this.ngZone.run(() => {
-        if (data.stage) this.sync.message = data.stage;
-        if (data.percent !== undefined) this.sync.progressPercent = data.percent;
-
-        const isDone = data.stage?.includes('[DONE]');
-        const isFailed = data.stage?.includes('[FAILED]');
-
-        if (isDone || isFailed) {
-          eventSource.close();
-          clearClientId();
-          this.sync.isSyncing = false;
-        }
-      });
-    };
-
-    eventSource.onerror = (err) => {
-      console.error('SSE error:', err);
-      eventSource.close();
-      this.sync.isSyncing = false;
-    };
   }
 
   private setAuthSuccess(res: GithubAuthResponse): void {
@@ -136,9 +96,8 @@ export class IntegrationComponent {
   }
 
   private completeAuthAndStartSync(): void {
-    const clientId = getClientId(true);
     this.expanded = false;
-    this.listenToSyncProgress(clientId, true);
+    this.integrationSvc.startUsersync().subscribe();
   }
 
   private handleAuthError(err: any): void {
@@ -153,7 +112,7 @@ export class IntegrationComponent {
       isLoading: false,
       username: '',
       lastSynced: null,
-      errorMessage: ''
+      errorMessage: '',
     };
   }
 }
