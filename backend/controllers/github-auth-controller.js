@@ -1,6 +1,6 @@
 const axios = require("axios");
 const jwt = require("jsonwebtoken");
-const Integration = require("../models/Integration");
+const Integration = require("../models/integration");
 
 exports.startGithubOAuth = (req, res) => {
   const redirectUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&redirect_uri=${process.env.GITHUB_CALLBACK_URL}&scope=repo,read:org,user&prompt=consent`;

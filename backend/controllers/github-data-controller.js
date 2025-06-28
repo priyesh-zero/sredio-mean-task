@@ -1,11 +1,10 @@
-const Integration = require("../models/Integration");
-const Commit = require("../models/GitHubCommit");
-const Pull = require("../models/GitHubPull");
-const Issue = require("../models/GitHubIssue");
-const Org = require("../models/GitHubOrg");
-const Repo = require("../models/GitHubRepo");
-const User = require("../models/GitHubUser");
-const Changelog = require("../models/GitHubChangelog");
+const Commit = require("../models/github/commit");
+const Pull = require("../models/github/pull");
+const Issue = require("../models/github/issues");
+const Org = require("../models/github/organisation");
+const Repo = require("../models/github/repo");
+const User = require("../models/github/user");
+const Changelog = require("../models/github/changelog");
 
 exports.getCollectionData = async (req, res) => {
   const { collection, page = 1, limit = 20, searchText = "" } = req.query;
@@ -129,11 +128,10 @@ exports.getCollectionData = async (req, res) => {
 
     const { total, data } = result[0];
 
-    let cleanData = []
+    let cleanData = [];
     if (data.length > 0) {
-      cleanData = data.map(({ flatFields, ...d}) => d)
+      cleanData = data.map(({ flatFields, ...d }) => d);
     }
-
 
     // Return only visible fields
 
