@@ -16,23 +16,35 @@ TEST-TASK-MEAN/
 
 ---
 
-## 🚀 Backend Setup (Node.js + Express)
+## Prerequisites
 
-### Prerequisites
 - Node.js v22+
-- MongoDB running locally or in the cloud
+- Docker
+- if you want you can have MongoDB running locally or in the cloud
 
 ### Environment
+
 Create a `.env` file inside `backend/`:
 
 ```env
 PORT=3000
-MONGO_URI=mongodb://localhost:27017/integrations
-GITHUB_CLIENT_ID=your_github_client_id
-GITHUB_CLIENT_SECRET=your_github_client_secret
-GITHUB_CALLBACK_URL=http://localhost:3000/auth/github/callback
+MONGO_URI=mongodb://localhost:27017/integrations # for local mongo connection
+GITHUB_CLIENT_ID=####################
+GITHUB_CLIENT_SECRET=****************************************
+# GITHUB_CALLBACK_URL=http://localhost:3000/auth/github/callback
+GITHUB_CALLBACK_URL=http://localhost:4200/integration
+JWT_SECRET=********************************************
+CLIENT_URL=http://localhost:4200
 
 ```
+
+### Run complete stack
+
+```
+docker compose up -d
+```
+
+## 🚀 Backend Setup (Node.js + Express)
 
 ### Install and Run
 
@@ -49,6 +61,7 @@ Backend will start on: `http://localhost:3000`
 ## 🌐 Frontend Setup (Angular)
 
 ### Prerequisites
+
 - Angular CLI v19+
 - Node.js v22+
 
@@ -73,6 +86,7 @@ ng build
 ## 🔗 GitHub API Integration
 
 This project fetches:
+
 - Repositories
 - Commits
 - Issues
@@ -99,3 +113,11 @@ OAuth2 flow + token storage is used for authentication.
 - Supports multiple GitHub entities dynamically
 
 ---
+
+## Task One
+
+![](./assets/task-one.pdf)
+
+## Task Two
+
+![](./assets/task-two.pdf)
