@@ -31,7 +31,6 @@ PORT=3000
 MONGO_URI=mongodb://localhost:27017/integrations # for local mongo connection
 GITHUB_CLIENT_ID=####################
 GITHUB_CLIENT_SECRET=****************************************
-# GITHUB_CALLBACK_URL=http://localhost:3000/auth/github/callback
 GITHUB_CALLBACK_URL=http://localhost:4200/integration
 JWT_SECRET=********************************************
 CLIENT_URL=http://localhost:4200
