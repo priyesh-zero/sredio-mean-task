@@ -116,8 +116,8 @@ OAuth2 flow + token storage is used for authentication.
 
 ## Task One
 
-![](./assets/task-one.pdf)
+[Task One Details](./assets/task-one.pdf)
 
 ## Task Two
 
-![](./assets/task-two.pdf)
+[Task Two Details](./assets/task-two.pdf)
