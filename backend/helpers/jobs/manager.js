@@ -2,6 +2,7 @@ const Job = require("../../models/job");
 const jobState = require("./state");
 const jobExecuter = require("./executer");
 const { sleep } = require("../utils");
+const { sentToClient } = require("../stream");
 
 exports.processJobs = async () => {
   while (jobState.isProcessing) {
@@ -83,6 +84,21 @@ const processJob = async (job) => {
       result,
       completedAt: new Date(),
     });
+
+    const existingJob = await Job.findOne({
+      userId: job.userId,
+      status: {
+        $in: ["retry", "pending", "processing"],
+      },
+    });
+
+    sentToClient(
+      job.userId,
+      {
+        [job.type.replace("sync-", "")]: result.synced,
+      },
+      !existingJob,
+    );
 
     console.log(`Job ${job._id} completed successfully`);
   } catch (error) {

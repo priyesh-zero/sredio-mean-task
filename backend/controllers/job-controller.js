@@ -1,4 +1,5 @@
 const { getStats, cleanup, add: addJob } = require("../helpers/jobs/handlers");
+const { addClient, removeClient } = require("../helpers/stream");
 
 exports.startUserSync = async (req, res) => {
   try {
@@ -7,6 +8,21 @@ exports.startUserSync = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+};
+
+exports.syncStatus = async (req, res) => {
+  const userId = req.body.userId;
+
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+
+  addClient(userId, res);
+
+  req.on("close", () => {
+    removeClient(userId);
+  });
 };
 
 exports.stats = async (req, res) => {
