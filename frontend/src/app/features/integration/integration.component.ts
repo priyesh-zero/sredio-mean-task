@@ -1,12 +1,15 @@
-import { Component, NgZone } from '@angular/core';
+import { Component, NgZone, ViewChild } from '@angular/core';
+import { MatDrawer } from '@angular/material/sidenav';
+import { Router } from '@angular/router';
 import { IntegrationService } from './services/integration.service';
 import { clearClientId, getClientId } from './utils/sync-client';
 import {
-  GithubAuthResponse,
-  UserAuthState,
-  SyncStatus,
+  IGithubAuthResponse,
+  IUserAuth,
+  ISyncStatus,
 } from './models/integration.model';
-
+import { LSKeys, setToLS } from './utils/storage';
+import { FilterDrawerService } from './services/filter-drawer.service';
 @Component({
   selector: 'app-integration',
   standalone: false,
@@ -14,7 +17,9 @@ import {
   styleUrls: ['./integration.component.scss'],
 })
 export class IntegrationComponent {
-  user: UserAuthState = {
+  @ViewChild('drawer') drawer!: MatDrawer;
+
+  user: IUserAuth = {
     isConnected: false,
     isLoading: true,
     username: '',
@@ -22,7 +27,7 @@ export class IntegrationComponent {
     errorMessage: '',
   };
 
-  sync: SyncStatus = {
+  sync: ISyncStatus = {
     isSyncing: false,
     message: '',
     progressPercent: 0,
@@ -32,8 +37,10 @@ export class IntegrationComponent {
 
   constructor(
     private ngZone: NgZone,
+    private router: Router,
     private integrationSvc: IntegrationService,
-  ) {}
+    private drawerSvc: FilterDrawerService,
+  ) { }
 
   ngOnInit(): void {
     const code = new URLSearchParams(window.location.search).get('code');
@@ -45,16 +52,23 @@ export class IntegrationComponent {
     }
   }
 
+  ngAfterViewInit(): void {
+    // Register the drawer reference
+    this.drawerSvc.setDrawer(this.drawer);
+  }
+
   connect(): void {
     this.integrationSvc.initiateGithubLogin();
   }
 
   disconnect(): void {
     this.integrationSvc.logoutGithubIntegration().subscribe({
-      next: () => (this.user.isConnected = false),
-      error: (err) => {
-        this.user.errorMessage = 'Logout failed. Please try again.';
-        console.error('Logout failed', err);
+      next: () => {
+        this.resetAuthState();
+        this.integrationSvc.removeUser();
+      },
+      error: (err: Error) => {
+        this.user.errorMessage = err.message;
       },
     });
   }
@@ -63,7 +77,7 @@ export class IntegrationComponent {
     this.user.isLoading = true;
 
     this.integrationSvc.getAuthStatus().subscribe({
-      next: (res: GithubAuthResponse) => {
+      next: (res: IGithubAuthResponse) => {
         this.user.isConnected = res.isConnected;
         this.user.username = res.username;
         this.user.lastSynced = new Date(res.connectedAt);
@@ -76,19 +90,23 @@ export class IntegrationComponent {
 
   handleGithubCallback(code: string): void {
     this.integrationSvc.authenticateWithGithubCode(code).subscribe({
-      next: (res: GithubAuthResponse) => this.setAuthSuccess(res),
+      next: (res: IGithubAuthResponse) => this.setAuthSuccess(res),
       error: (err) => this.handleAuthError(err),
-      complete: () => this.completeAuthAndStartSync(),
+      complete: () => {
+        this.completeAuthAndStartSync();
+        this.router.navigate(['/integration/result']);
+      }
     });
   }
 
-  private setAuthSuccess(res: GithubAuthResponse): void {
-    this.user.isConnected = res.isConnected;
-    this.user.username = res.username;
-    this.user.lastSynced = new Date(res.connectedAt);
-    this.user.errorMessage = '';
-    this.user.isLoading = false;
-
+  private setAuthSuccess(res: IGithubAuthResponse): void {
+    this.user = {
+      ...res,
+      isLoading: false,
+      lastSynced: res.connectedAt ? new Date(res.connectedAt) : null,
+      errorMessage: ''
+    }
+    setToLS(LSKeys.USER, this.user)
     // Clean up URL
     const url = new URL(window.location.href);
     url.searchParams.delete('code');

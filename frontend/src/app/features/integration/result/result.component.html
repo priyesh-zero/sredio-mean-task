@@ -2,8 +2,8 @@
   <div class="table-header-filters">
     <div class="filter-group-left">
       <div class="filter-item">
-        <label class="filter-label">Active Integrations:</label>
-        <mat-form-field appearance="outline" class="filter-field">
+        <mat-form-field appearance="outline">
+          <mat-label>Active Integrations</mat-label>
           <mat-select [(ngModel)]="selectedIntegration" (selectionChange)="onIntegrationChange()">
             <mat-option *ngFor="let integration of integrations" [value]="integration">
               {{ integration }}
@@ -13,8 +13,8 @@
       </div>
 
       <div class="filter-item">
-        <label class="filter-label">Entity:</label>
-        <mat-form-field appearance="outline" class="filter-field">
+        <mat-form-field appearance="outline" class="custom-form-field">
+          <mat-label>Entity</mat-label>
           <mat-select [(ngModel)]="selectedEntity" (selectionChange)="onEntityChange()">
             <mat-option *ngFor="let entity of entities" [value]="entity">
               {{ entity }}
@@ -22,27 +22,33 @@
           </mat-select>
         </mat-form-field>
       </div>
+      <button mat-raised-button color="primary" (click)="openFilterPopup()">Custom Filter</button>
     </div>
-
     <div class="filter-group-right">
       <div class="filter-item">
-        <label class="filter-label">Search:</label>
-        <mat-form-field appearance="outline" class="filter-field">
-          <input matInput [ngModel]="searchText" (ngModelChange)="onSearchInput($event)" placeholder="" />
+        <mat-form-field appearance="outline" class="custom-form-field">
+          <mat-label>Search</mat-label>
+          <input matInput [ngModel]="searchText" (ngModelChange)="onSearchInput($event)" placeholder="Type here..." />
           <button matSuffix mat-icon-button disableRipple>
             <mat-icon>search</mat-icon>
           </button>
         </mat-form-field>
+        <div class="filter-btn-container">
+          <button mat-fab color="primary" (click)="openFilterDrawer()" aria-label="Open Filter Drawer">
+            <mat-icon>tune</mat-icon>
+          </button>
+        </div>
       </div>
     </div>
   </div>
-
+  <integration-custom-filter-list [filters]=" customFilters"
+    (filtersChange)="onFilterValueChange($event)"></integration-custom-filter-list>
 
   <div class="grid-container">
-    <ag-grid-angular class="ag-theme-alpine grid" [theme]="'legacy'" style="width: 100%;" [rowData]="rowData"
-      [columnDefs]="columnDefs" [defaultColDef]="defaultColDef" [domLayout]="'normal'" [animateRows]="true">
+    <ag-grid-angular class="ag-theme-alpine grid" [theme]="'legacy'" [rowData]="rowData" [columnDefs]="columnDefs"
+      [defaultColDef]="defaultColDef" [sideBar]="false" [domLayout]="'normal'" [animateRows]="true">
     </ag-grid-angular>
-    <div class="pagination-controls" >
+    <div class="pagination-controls">
       <div style="display: flex; align-items: center; gap: 16px;">
         <span class="record-range">
           {{
@@ -63,5 +69,4 @@
       </div>
     </div>
   </div>
-
 </div>

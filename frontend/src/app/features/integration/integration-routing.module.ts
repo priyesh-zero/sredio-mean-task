@@ -1,9 +1,23 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { IntegrationComponent } from './integration.component';
+import { ResultComponent } from './result/result.component';
+import { SearchResultComponent } from './search-result/search-result.component';
+import { IntegrationAuthGuard } from './services/integration-auth.guard';
+import { PageNotFoundComponent } from './error-pages/page-not-found/page-not-found.component';
+import { IntegrationLandingComponent } from './integration-landing/integration-landing.component';
 
 const routes: Routes = [
-  { path: '', component: IntegrationComponent }
+  {
+    path: '',
+    component: IntegrationComponent,
+    children: [
+      { path: '', component: IntegrationLandingComponent },
+      { path: 'result', component: ResultComponent, canActivate: [IntegrationAuthGuard] },
+      { path: 'search-result', component: SearchResultComponent, canActivate: [IntegrationAuthGuard] },
+      { path: '**', component: PageNotFoundComponent },
+    ]
+  }
 ];
 
 @NgModule({

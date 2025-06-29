@@ -1,19 +1,25 @@
-export interface GithubAuthResponse {
+export interface IGithubAuthResponse {
   connectedAt: string;
   isConnected: boolean;
   username: string;
 }
-
-export interface UserAuthState {
+export interface IUserAuth {
   isConnected: boolean;
   isLoading: boolean;
   username: string;
   lastSynced: Date | null;
   errorMessage: string;
 }
-
-export interface SyncStatus {
+export interface ISyncStatus {
   isSyncing: boolean;
   message: string;
   progressPercent: number;
 }
+export interface ICustomFilter {
+  field: string;
+  label: string;
+  type: 'string' | 'boolean' | 'date' | 'dateRange' | 'select';
+  value: any;
+  options?: string[];
+}
+

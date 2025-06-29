@@ -1,0 +1,147 @@
+.header-section {
+  .panel {
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .header-top {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    width: 100%;
+
+    .meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+
+      .logo {
+        height: 30px;
+      }
+
+      .status-icon {
+        color: #4caf50;
+      }
+    }
+
+    .sync-message {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #333;
+    
+      .spinner-icon {
+        animation: spin 1.2s linear infinite;
+        margin-right: 8px;
+        color: #3f51b5;
+      }
+    }
+    
+  }
+
+  .auth-section {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 1rem 1.5rem;
+
+    .disconnect-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+
+      .remove-icon {
+        font-size: 18px;
+      }
+    }
+
+    &.info-mobile {
+      display: none;
+    }
+
+    .connect {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+      padding: 2rem 1rem;
+      width: 100%;
+
+      .connect-title {
+        margin-top: 1rem;
+        color: #1a237e;
+      }
+
+      .error {
+        color: #f44336;
+      }
+    }
+
+    .loader {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+      width: 100%;
+
+      .loader-text {
+        margin-top: 0.5rem;
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.6);
+      }
+    }
+  }
+
+  .user-info {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.6);
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    .info-line {
+      line-height: 1.4;
+    }
+    &.desktop {
+      display: flex;
+    }
+    &.mobile {
+      display: none;
+    }
+  }
+}
+
+::ng-deep .panel .mat-expansion-panel-header {
+  height: 75px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .user-info.desktop {
+    display: none !important;
+  }
+  .user-info-section{
+    display: flex;
+    flex-direction: column;
+    gap: 8px
+  }
+  .user-info.mobile {
+    display: flex !important;
+  }
+}
+
+
+

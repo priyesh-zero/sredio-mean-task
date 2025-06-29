@@ -1,0 +1,66 @@
+<div class="header-section">
+  <mat-progress-bar *ngIf="sync.isSyncing" mode="determinate" [value]="sync.progressPercent"
+    color="primary"></mat-progress-bar>
+  <mat-accordion>
+    <mat-expansion-panel class="panel" [expanded]="expanded" [disabled]="!user.isConnected">
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <div class="header-top">
+            <div class="meta">
+              <img src="assets/images/logo.png" alt="GitHub" class="logo" />
+              <ng-container *ngIf="user.isConnected">
+                <mat-icon color="primary" class="status-icon">check_circle</mat-icon>
+                <mat-icon>history</mat-icon>
+              </ng-container>
+            </div>
+            <div class="sync-message" *ngIf="sync.isSyncing">
+              <mat-icon class="spinner-icon">sync</mat-icon>
+              {{ sync.message || 'Syncing in progress...' }}
+            </div>
+            <div class="user-info desktop" *ngIf="user.isConnected">
+              <div class="info-line">
+                {{ user.username }}: {{ user.lastSynced | date: 'yyyy-MM-dd HH:mm a' }}
+              </div>
+              <div class="info-line">Sync Type: Full</div>
+            </div>
+          </div>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <div class="auth-section">
+        <ng-container *ngIf="user.isLoading; else loadedSection">
+          <div class="loader">
+            <mat-spinner diameter="24"></mat-spinner>
+            <span class="loader-text">Checking integration...</span>
+          </div>
+        </ng-container>
+
+        <ng-template #loadedSection>
+          <ng-container *ngIf="user.isConnected; else connectSection">
+            <div class="user-info-section">
+              <div class="user-info mobile" *ngIf="user.isConnected">
+                <div class="info-line">
+                  {{ user.username }}: {{ user.lastSynced | date: 'yyyy-MM-dd HH:mm a' }}
+                </div>
+                <div class="info-line">Sync Type: Full</div>
+              </div>
+              <button mat-raised-button color="primary" (click)="disconnect()" class="disconnect-btn">
+                Remove
+                <mat-icon class="remove-icon">logout</mat-icon>
+              </button>
+            </div>
+
+          </ng-container>
+
+          <ng-template #connectSection>
+            <div class="connect">
+              <button mat-raised-button color="primary" (click)="connect()">Connect</button>
+              <h3 class="connect-title">Connect Sredio to GitHub</h3>
+              <p class="error">{{ user.errorMessage }}</p>
+            </div>
+          </ng-template>
+        </ng-template>
+      </div>
+    </mat-expansion-panel>
+  </mat-accordion>
+</div>

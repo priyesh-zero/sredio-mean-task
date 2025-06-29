@@ -1,0 +1,26 @@
+.faceted-filter {
+  height: 100%;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-width: 350px;
+  .filter-container {
+    .title {
+      margin: 12px 0;
+    }
+    mat-form-field {
+      width: 100%;
+    }
+  }
+
+  .filter-actions {
+      display: flex;
+      justify-content: space-between;
+      padding: 16px;
+      border-top: 1px solid #ddd;
+    }
+}
+
+
+  

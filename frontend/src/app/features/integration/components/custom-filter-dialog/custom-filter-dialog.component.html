@@ -1,0 +1,74 @@
+<div class="dialog-header">
+  <h3>Define Custom Filter</h3>
+</div>
+
+<mat-dialog-content class="filter-popup">
+
+  <!-- Added Filters Preview -->
+  <div *ngIf="filters.length > 0" class="filter-list">
+    <mat-chip-set>
+      <mat-chip *ngFor="let filter of filters; let i = index" (click)="editFilter(filter, i)" (removed)="remove(i)"
+        removable>
+        {{ filter.label }}
+        <mat-icon matChipRemove>cancel</mat-icon>
+      </mat-chip>
+      <mat-chip class="add-new-chip" (click)="resetInputs()" color="primary" selectable="false" [disableRipple]="true">
+        <mat-icon>add</mat-icon>
+        New
+      </mat-chip>
+    </mat-chip-set>
+  </div>
+
+  <div class="filter-form">
+    <!-- Field Selection -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Field</mat-label>
+      <input type="text" matInput [matAutocomplete]="auto" [(ngModel)]="fieldSearch"
+        (ngModelChange)="filterFieldOptions($event)" placeholder="Search field..." />
+      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onFieldSelected($event.option.value)">
+        <mat-option *ngFor="let option of filteredFieldOptions" [value]="option.label">
+          {{ option.label }}
+        </mat-option>
+      </mat-autocomplete>
+    </mat-form-field>
+
+    <!-- Type Selection -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Type</mat-label>
+      <mat-select [(ngModel)]="selectedType">
+        <mat-option value="string">String</mat-option>
+        <mat-option value="select">Select</mat-option>
+        <mat-option value="boolean">Boolean</mat-option>
+        <mat-option value="date">Date</mat-option>
+        <mat-option value="dateRange">Date Range</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Select Options Input (Visible only for type=select") -->
+    <div *ngIf="selectedType === 'select'" class="option-builder">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Options</mat-label>
+        <mat-chip-grid #chipGrid aria-label="Add select values">
+          <mat-chip-row *ngFor="let opt of selectOptions" (removed)="removeSelectOption(opt)">
+            {{ opt }}
+            <button matChipRemove [attr.aria-label]="'Remove ' + opt">
+              <mat-icon>cancel</mat-icon>
+            </button>
+          </mat-chip-row>
+        </mat-chip-grid>
+        <input placeholder="Add option..." [matChipInputFor]="chipGrid"
+          (matChipInputTokenEnd)="addSelectOptionFromEvent($event)" />
+      </mat-form-field>
+    </div>
+
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <div class="action-buttons">
+    <button mat-button (click)="close()">Cancel</button>
+    <button mat-flat-button color="primary" (click)="addFilter()">
+      {{ editIndex !== null ? 'Update Filter' : 'Add Filter' }}
+    </button>
+    <button mat-flat-button color="accent" (click)="apply()">Save Filters</button>
+  </div>
+</mat-dialog-actions>

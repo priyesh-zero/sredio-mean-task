@@ -1,0 +1,68 @@
+<div class="filter-container">
+    <ng-container *ngFor="let filter of filters">
+        <!-- String -->
+        <div *ngIf="filter.type === 'string'" class="filter-block">
+            <label class="field-label">{{ filter.label }}</label>
+            <mat-form-field appearance="outline">
+                <input matInput [ngModel]="filter.value" [placeholder]="'Enter ' + filter.label.toLowerCase()"
+                    (ngModelChange)="onValueChange(filter, $event)" />
+            </mat-form-field>
+        </div>
+
+        <!-- Boolean -->
+        <div *ngIf="filter.type === 'boolean'" class="filter-block">
+            <label class="field-label">{{ filter.label }}</label>
+            <mat-form-field appearance="outline">
+                <mat-select [(ngModel)]="filter.value" [placeholder]="'Select option'"
+                    (ngModelChange)="onValueChange(filter, $event)">
+                    <mat-option [value]="undefined" disabled hidden selected>Select option</mat-option>
+                    <mat-option [value]="true">True</mat-option>
+                    <mat-option [value]="false">False</mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+
+        <!-- Date -->
+        <div *ngIf="filter.type === 'date'" class="filter-block date">
+            <label class="field-label">{{ filter.label }}</label>
+            <mat-form-field appearance="outline">
+                <input matInput [matDatepicker]="picker" [ngModel]="filter.value" placeholder="Date"
+                    (ngModelChange)="onValueChange(filter, $event)" />
+                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-datepicker #picker></mat-datepicker>
+            </mat-form-field>
+        </div>
+
+        <!-- Date Range -->
+        <div *ngIf="filter.type === 'dateRange'" class="filter-block date-range">
+            <label class="field-label">{{ filter.label }}</label>
+            <div class="date-range-fields">
+                <mat-form-field appearance="outline">
+                    <input matInput [matDatepicker]="fromPicker" [ngModel]="filter.value?.from"
+                        (ngModelChange)="onDateRangeChange(filter, 'from', $event)" placeholder="From" />
+                    <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #fromPicker></mat-datepicker>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                    <input matInput [matDatepicker]="toPicker" [ngModel]="filter.value?.to"
+                        (ngModelChange)="onDateRangeChange(filter, 'to', $event)" placeholder="To" />
+                    <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+                    <mat-datepicker #toPicker></mat-datepicker>
+                </mat-form-field>
+            </div>
+        </div>
+
+        <!-- Select -->
+        <div *ngIf="filter.type === 'select'" class="filter-block">
+            <label class="field-label">{{ filter.label }}</label>
+            <mat-form-field appearance="outline">
+                <mat-select [(ngModel)]="filter.value" (ngModelChange)="onValueChange(filter, $event)"
+                    [placeholder]="'Select ' + filter.label">
+                    <mat-option [value]="undefined" disabled hidden selected>Select option</mat-option>
+                    <mat-option *ngFor="let option of filter.options" [value]="option">{{ option }}</mat-option>
+                </mat-select>
+            </mat-form-field>
+        </div>
+    </ng-container>
+</div>
