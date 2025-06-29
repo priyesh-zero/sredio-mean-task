@@ -28,85 +28,26 @@ exports.getCollectionData = async (req, res) => {
 
     const excludedFields = ["_id", "githubUserId", "userId", "__v"];
 
-    // Get only string fields from the schema for $regex filtering
-    const stringFields = Object.entries(Model.schema.paths)
-      .filter(
-        ([key, type]) =>
-          type.instance === "String" && !excludedFields.includes(key),
-      )
-      .map(([key]) => key);
+    const inclusionFields = Object.entries(Model.schema.paths)
+      .filter(([key]) => !excludedFields.includes(key))
+      .reduce((acc, [key]) => {
+        acc[key] = 1;
+        return acc;
+      }, {});
 
-    const query = {};
+    const regexOrQuery = Object.entries(Model.schema.paths)
+      .filter(([key]) => !excludedFields.includes(key))
+      .map(([key]) => ({
+        [key]: {
+          $regex: new RegExp(searchText, "i"),
+        },
+      }));
 
     // Perform query
     const result = await Model.aggregate([
       {
-        $addFields: {
-          flatFields: {
-            $function: {
-              body: function (obj) {
-                function flatten(obj, prefix = "") {
-                  let result = [];
-                  for (let key in obj) {
-                    const fullKey = prefix ? `${prefix}.${key}` : key;
-                    const val = obj[key];
-
-                    if (val && typeof val === "object" && !Array.isArray(val)) {
-                      result = result.concat(flatten(val, fullKey));
-                    } else if (Array.isArray(val)) {
-                      val.forEach((v, idx) => {
-                        if (typeof v === "object") {
-                          result = result.concat(
-                            flatten(v, `${fullKey}[${idx}]`),
-                          );
-                        } else {
-                          result.push({ k: `${fullKey}[${idx}]`, v: v });
-                        }
-                      });
-                    } else {
-                      result.push({ k: fullKey, v: val });
-                    }
-                  }
-                  return result;
-                }
-
-                return flatten(obj);
-              },
-              args: ["$$ROOT"],
-              lang: "js",
-            },
-          },
-        },
-      },
-      {
         $match: {
-          $expr: {
-            $gt: [
-              {
-                $size: {
-                  $filter: {
-                    input: "$flatFields",
-                    as: "field",
-                    cond: {
-                      $regexMatch: {
-                        input: {
-                          $convert: {
-                            input: "$$field.v",
-                            to: "string",
-                            onError: "",
-                            onNull: "",
-                          },
-                        },
-                        regex: searchText,
-                        options: "i",
-                      },
-                    },
-                  },
-                },
-              },
-              0,
-            ],
-          },
+          $and: [{ userId: req.body.userId }, { $or: regexOrQuery }],
         },
       },
       {
@@ -121,23 +62,19 @@ exports.getCollectionData = async (req, res) => {
       {
         $project: {
           total: "$metadata.total",
-          data: 1,
+          data: inclusionFields,
         },
       },
     ]);
 
-    const { total, data } = result[0];
-
-    let cleanData = [];
-    if (data.length > 0) {
-      cleanData = data.map(({ flatFields, ...d }) => d);
-    }
+    const { total, data } =
+      result.length > 0 ? result[0] : { total: 0, data: [] };
 
     // Return only visible fields
 
-    const fields = cleanData.length ? Object.keys(data[0]) : [];
+    const fields = data.length > 0 ? Object.keys(data[0]) : [];
 
-    res.json({ fields, data: cleanData, total });
+    res.json({ fields, data, total });
   } catch (err) {
     console.error("getCollectionData Error:", err);
     res.status(500).json({ error: err.message });

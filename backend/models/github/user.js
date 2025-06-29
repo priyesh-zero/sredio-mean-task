@@ -1,5 +1,4 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+const { UserSchema } = require("./_common-schema");
 
-const UserSchema = new mongoose.Schema({}, { strict: false });
-
-module.exports = mongoose.model('GitHubUser', UserSchema, 'github_users');
+module.exports = mongoose.model("GitHubUser", UserSchema, "github_users");
