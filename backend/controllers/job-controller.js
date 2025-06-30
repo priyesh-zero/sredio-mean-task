@@ -1,5 +1,6 @@
 const { getStats, cleanup, add: addJob } = require("../helpers/jobs/handlers");
 const { addClient, removeClient } = require("../helpers/stream");
+const Job = require("../models/job");
 
 exports.startUserSync = async (req, res) => {
   try {
@@ -19,6 +20,23 @@ exports.syncStatus = async (req, res) => {
   res.flushHeaders();
 
   addClient(userId, res);
+
+  const timeout = setTimeout(async () => {
+    const existingJob = await Job.findOne({
+      userId,
+      status: {
+        $in: ["retry", "pending", "processing"],
+      },
+    });
+
+    if (!existingJob) {
+      res.write(
+        `data: ${JSON.stringify({ isSyncing: false, stats: {}, message: "Sync complete!" })}\n\n`,
+      );
+      res.end();
+    }
+    !!timeout && clearTimeout(timeout);
+  }, 2000);
 
   req.on("close", () => {
     removeClient(userId);

@@ -10,7 +10,7 @@ const clientMap = new Map();
  * @returns {void} no returns
  */
 const respond = (response, stats, message, isSyncing = true) => {
-  response.write(JSON.stringify({ isSyncing, stats, message }) + "\n");
+  response.write(`data: ${JSON.stringify({ isSyncing, stats, message })}\n\n`);
   if (!isSyncing) {
     response.end();
   }
@@ -23,8 +23,7 @@ const respond = (response, stats, message, isSyncing = true) => {
  * @returns {void} no returns
  */
 exports.addClient = (userId, response) => {
-  clientMap.set(userId, { response, stats: {} });
-  respond(response, {}, "Client connected successfully!");
+  clientMap.set(userId.toString(), { response, stats: {} });
 };
 
 /**
@@ -33,7 +32,7 @@ exports.addClient = (userId, response) => {
  * @returns {void} no returns
  */
 exports.removeClient = (userId) => {
-  clientMap.delete(userId);
+  clientMap.delete(userId.toString());
 };
 
 /**
@@ -44,15 +43,15 @@ exports.removeClient = (userId) => {
  * @returns {void} no returns
  */
 exports.sentToClient = (userId, update, completed = false) => {
-  if (!clientMap.has(userId)) {
+  if (!clientMap.has(userId.toString())) {
     return;
   }
-  const { response, stats } = clientMap.get(userId);
-  const message = "";
+  const { response, stats } = clientMap.get(userId.toString());
+  let message = "";
   for (key in update) {
     stats[key] = stats[key] ? stats[key] + update[key] : update[key];
     message = message + ` ${stats[key]} ${key}`;
   }
-  clientMap.set(userId, { response, stats });
+  clientMap.set(userId.toString(), { response, stats });
   respond(response, stats, `Syncing! ${message} synced already`, !completed);
 };
