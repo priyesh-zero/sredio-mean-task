@@ -1,48 +1,55 @@
 <div class="integration-container">
-  <div class="table-header-filters">
-    <div class="filter-group-left">
-      <div class="filter-item">
-        <mat-form-field appearance="outline">
-          <mat-label>Active Integrations</mat-label>
-          <mat-select [(ngModel)]="selectedIntegration" (selectionChange)="onIntegrationChange()">
-            <mat-option *ngFor="let integration of integrations" [value]="integration.value">
-              {{ integration.label }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
+  <div class="filter-container">
+    <div class="table-header-filters">
+      <div class="filter-group-left">
+        <div class="filter-item left">
+          <mat-form-field appearance="outline">
+            <mat-label>Active Integrations</mat-label>
+            <mat-select [(ngModel)]="selectedIntegration" (selectionChange)="onIntegrationChange()">
+              <mat-option *ngFor="let integration of integrations" [value]="integration.value">
+                {{ integration.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
 
-      <div class="filter-item">
-        <mat-form-field appearance="outline" class="custom-form-field">
-          <mat-label>Entity</mat-label>
-          <mat-select [(ngModel)]="selectedEntity" (selectionChange)="onEntityChange()">
-            <mat-option *ngFor="let entity of entities" [value]="entity.value">
-              {{ entity.label }}
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
+        <div class="filter-item left">
+          <mat-form-field appearance="outline" class="custom-form-field">
+            <mat-label>Entity</mat-label>
+            <mat-select [(ngModel)]="selectedEntity" (selectionChange)="onEntityChange()">
+              <mat-option *ngFor="let entity of entities" [value]="entity.value">
+                {{ entity.label }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
       </div>
-      <button mat-raised-button color="primary" (click)="openFilterPopup()">Custom Filter</button>
-    </div>
-    <div class="filter-group-right">
-      <div class="filter-item">
-        <mat-form-field appearance="outline" class="custom-form-field">
-          <mat-label>Search</mat-label>
-          <input matInput [ngModel]="searchText" (ngModelChange)="onSearchInput($event)" placeholder="Type here..." />
-          <button matSuffix mat-icon-button disableRipple>
-            <mat-icon>search</mat-icon>
-          </button>
-        </mat-form-field>
-        <div class="filter-btn-container">
-          <button mat-fab color="primary" (click)="openFilterDrawer()" aria-label="Open Filter Drawer">
-            <mat-icon>tune</mat-icon>
-          </button>
+      <div class="filter-group-right">
+        <div class="filter-item right">
+          <mat-form-field appearance="outline" class="custom-form-field">
+            <mat-label>Search</mat-label>
+            <input matInput [ngModel]="searchText" (ngModelChange)="onSearchInput($event)" placeholder="Type here..." />
+            <button matSuffix mat-icon-button disableRipple>
+              <mat-icon>search</mat-icon>
+            </button>
+          </mat-form-field>
+          <div class="filter-btn-container">
+            <button mat-fab color="primary" (click)="openFilterDrawer()" aria-label="Open Filter Drawer">
+              <mat-icon>tune</mat-icon>
+            </button>
+          </div>
         </div>
       </div>
     </div>
+    <!-- Custom filter -->
+    <div class="custom-filter">
+      <button mat-raised-button color="primary" (click)="openFilterPopup()">Custom Filter</button>
+      <div class="filter-list">
+        <integration-custom-filter-list [filters]=" customFilters"
+          (filtersChange)="onFilterValueChange($event)"></integration-custom-filter-list>
+      </div>
+    </div>
   </div>
-  <integration-custom-filter-list [filters]=" customFilters"
-    (filtersChange)="onFilterValueChange($event)"></integration-custom-filter-list>
 
   <div class="grid-container">
     <ag-grid-angular class="ag-theme-alpine grid" [theme]="'legacy'" [rowData]="rowData" [columnDefs]="columnDefs"
@@ -50,7 +57,7 @@
       [pagination]="false" [masterDetail]="true" [animateRows]="true">
     </ag-grid-angular>
     <div class="pagination-controls">
-      <div style="display: flex; align-items: center; gap: 16px;">
+      <div class="container">
         <span class="record-range">
           {{
           ((currentPage - 1) * pageSize) + 1
@@ -61,12 +68,14 @@
         <button mat-button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
           Previous
         </button>
+        <mat-icon>chevron_left</mat-icon>
 
         <span>Page {{ currentPage }} of {{ totalPages }}</span>
 
         <button mat-button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
           Next
         </button>
+        <mat-icon>chevron_right</mat-icon>
       </div>
     </div>
   </div>

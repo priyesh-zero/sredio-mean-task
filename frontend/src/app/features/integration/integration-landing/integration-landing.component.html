@@ -1,4 +1,4 @@
-<div class="landing-wrapper">
+<div class="landing-wrapper" *ngIf="isLoggedIn">
   <div class="title">
     <h1>Sredio</h1>
     <mat-icon>all_inclusive</mat-icon>
@@ -7,7 +7,7 @@
   <p>
     Seamlessly connect and explore your GitHub repositories, commits, issues, and more — all in one powerful dashboard.
   </p>
-  <button *ngIf="isLoggedIn" mat-raised-button color="primary" (click)="goToResult()">
+  <button mat-raised-button color="primary" (click)="goToResult()">
     View Insights
   </button>
 </div>

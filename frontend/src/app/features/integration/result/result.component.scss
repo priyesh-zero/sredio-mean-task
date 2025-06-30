@@ -3,59 +3,82 @@
   flex-direction: column;
   gap: 16px;
   padding: 24px;
-  
-  .table-header-filters {
+
+  .filter-container {
     display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-    flex-wrap: wrap;
-    gap: 16px;
+    flex-direction: column;
+    gap: 8px;
   
-    .filter-group-left,
-    .filter-group-right {
+    .table-header-filters {
       display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
       flex-wrap: wrap;
-      align-items: center;
-      gap: 24px;
-    }
-  
-    .filter-item {
-      display: flex;
-      gap: 8px;
-  
-      .filter-label {
-        font-weight: 500;
-        font-size: 14px;
-        color: #555;
-        white-space: nowrap;
-        margin-bottom: 16px;
-      }
-    }
-  
-    @media (max-width: 768px) {
-      flex-direction: column;
-      align-items: stretch;
-  
+      gap: 16px;
+    
       .filter-group-left,
       .filter-group-right {
-        flex-direction: column;
-        width: 100%;
-        gap: 12px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 24px;
       }
-  
+    
       .filter-item {
+        display: flex;
+        gap: 8px;
+    
+        .filter-label {
+          font-weight: 500;
+          font-size: 14px;
+          color: #555;
+          white-space: nowrap;
+          margin-bottom: 16px;
+        }
+      }
+    
+      @media (max-width: 768px) {
         flex-direction: column;
         align-items: stretch;
-        width: 100%;
-        .filter-label {
-          margin-bottom: 0;
-        }
-  
-        .filter-field {
+    
+        .filter-group-left,
+        .filter-group-right {
+          flex-direction: column;
           width: 100%;
+          gap: 12px;
+        }
+    
+        .filter-item {
+          flex-direction: column;
+          align-items: stretch;
+          width: 100%;
+          &.right {
+            flex-direction: row;
+            mat-form-field {
+              width: 100%;
+            }
+          }
+          .filter-label {
+            margin-bottom: 0;
+          }
+    
+          .filter-field {
+            width: 100%;
+          }
         }
       }
     }
+
+    .custom-filter {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      align-items: flex-start;
+      .filter-list {
+        width: 100%;
+      }
+    }
+
   }
   
   .grid-container {
@@ -77,14 +100,21 @@
       align-items: center;
       gap: 12px;
       font-size: 14px;
-  
-      button {
-        min-width: 80px;
-      }
-  
-      span {
-        font-weight: 500;
-        color: #333;
+      .container {
+        display: flex; 
+        align-items: 
+        center; gap: 16px;
+        button {
+          min-width: 80px;
+          display: flex;
+        }
+        mat-icon {
+          display: none;
+        }
+        span {
+          font-weight: 500;
+          color: #333;
+        }
       }
     }
   }
@@ -96,6 +126,19 @@
       flex-direction: column;
       mat-form-field {
         width: 100%;
+      }
+    }
+    .custom-filter {
+      button {
+        width: 100%;
+      }
+    }
+    .pagination-controls {
+      button {
+        display: none !important;
+      }
+      mat-icon {
+        display: flex !important;
       }
     }
   }

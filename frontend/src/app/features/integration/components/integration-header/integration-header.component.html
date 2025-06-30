@@ -1,6 +1,5 @@
 <div class="header-section">
-  <mat-progress-bar *ngIf="sync.isSyncing" mode="determinate" [value]="sync.progressPercent"
-    color="primary"></mat-progress-bar>
+  <mat-progress-bar *ngIf="sync.isSyncing" mode="indeterminate" color="primary"></mat-progress-bar>
   <mat-accordion>
     <mat-expansion-panel class="panel" [expanded]="expanded" [disabled]="!user.isConnected">
       <mat-expansion-panel-header>
@@ -10,12 +9,9 @@
               <img src="assets/images/logo.png" alt="GitHub" class="logo" />
               <ng-container *ngIf="user.isConnected">
                 <mat-icon color="primary" class="status-icon">check_circle</mat-icon>
-                <mat-icon>history</mat-icon>
+                <mat-icon class="spinner-icon" *ngIf="sync.isSyncing">sync</mat-icon>
+                <mat-icon *ngIf="!sync.isSyncing">history</mat-icon>
               </ng-container>
-            </div>
-            <div class="sync-message" *ngIf="sync.isSyncing">
-              <mat-icon class="spinner-icon">sync</mat-icon>
-              {{ sync.message || 'Syncing in progress...' }}
             </div>
             <div class="user-info desktop" *ngIf="user.isConnected">
               <div class="info-line">
@@ -43,6 +39,12 @@
                   {{ user.username }}: {{ user.connectedAt | date: 'yyyy-MM-dd HH:mm a' }}
                 </div>
                 <div class="info-line">Sync Type: Full</div>
+              </div>
+              <div class="sync mobile">
+                <div class="sync-message" *ngIf="sync.isSyncing">
+                  <mat-icon class="spinner-icon">sync</mat-icon>
+                  {{ sync.message || 'Syncing in progress...' }}
+                </div>
               </div>
               <button mat-raised-button color="primary" (click)="disconnect()" class="disconnect-btn">
                 Remove

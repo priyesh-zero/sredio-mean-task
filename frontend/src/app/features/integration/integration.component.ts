@@ -30,7 +30,7 @@ export class IntegrationComponent {
   sync: ISyncStatus = {
     isSyncing: false,
     message: '',
-    progressPercent: 0,
+    stats: {},
   };
 
   expanded = true;
@@ -106,7 +106,6 @@ export class IntegrationComponent {
   }
 
   listenToSyncProgress(triggerSync: boolean = false): void {
-    // this.sync.isSyncing = true;
     this.expanded = false;
 
     if (triggerSync) {
@@ -116,21 +115,13 @@ export class IntegrationComponent {
     const eventSource = this.syncSvc.connectToSyncStatus();
 
     eventSource.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      console.log('---sync data', data)
+      const data = JSON.parse(event.data) as ISyncStatus;
+      this.sync = data;
       this.ngZone.run(() => {
-        // if (data.stage) this.sync.message = data.stage;
-        // if (data.percent !== undefined) this.sync.progressPercent = data.percent;
-
-        // const isDone = data.stage?.includes('[DONE]');
-        // const isFailed = data.stage?.includes('[FAILED]');
-
-        // if (isDone || isFailed) {
-        //   eventSource.close();
-        //   this.sync.isSyncing = false;
-        // }
-        eventSource.close();
-        this.sync.isSyncing = false;
+        if (!this.sync.isSyncing) {
+          eventSource.close();
+          this.sync.isSyncing = false;
+        }
       });
     };
 

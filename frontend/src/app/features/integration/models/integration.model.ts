@@ -13,7 +13,7 @@ export interface IUserAuth {
 export interface ISyncStatus {
   isSyncing: boolean;
   message: string;
-  progressPercent: number;
+  stats?: Record<string, number>;
 }
 export interface ICustomFilter {
   field: string;

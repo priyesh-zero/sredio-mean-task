@@ -9,7 +9,6 @@
   display: flex;
   flex-direction: column;
   min-width: 200px;
-  max-width: 260px;
 }
 
 .field-label {
@@ -36,4 +35,11 @@ mat-form-field {
 .date-range-fields {
   display: flex;
   gap: 8px;
+}
+
+    
+@media (max-width: 600px) {
+  .filter-block {
+    width: 100%
+  }
 }
