@@ -5,10 +5,16 @@
   margin: 0 auto;
   color: #333;
 
-  h1 {
-    font-size: 1.4rem;
+  .title {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
     margin-bottom: 16px;
     color: #1976d2;
+    h1 {
+      font-size: 1.4rem;
+    }  
   }
 
   p {

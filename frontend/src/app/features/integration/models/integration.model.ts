@@ -7,7 +7,7 @@ export interface IUserAuth {
   isConnected: boolean;
   isLoading: boolean;
   username: string;
-  lastSynced: Date | null;
+  connectedAt: Date | null;
   errorMessage: string;
 }
 export interface ISyncStatus {

@@ -2,7 +2,6 @@ import { Component, NgZone, ViewChild } from '@angular/core';
 import { MatDrawer } from '@angular/material/sidenav';
 import { Router } from '@angular/router';
 import { IntegrationService } from './services/integration.service';
-import { clearClientId, getClientId } from './utils/sync-client';
 import {
   IGithubAuthResponse,
   IUserAuth,
@@ -10,6 +9,7 @@ import {
 } from './models/integration.model';
 import { LSKeys, setToLS } from './utils/storage';
 import { FilterDrawerService } from './services/filter-drawer.service';
+import { SyncService } from './services/sync.service';
 @Component({
   selector: 'app-integration',
   standalone: false,
@@ -23,7 +23,7 @@ export class IntegrationComponent {
     isConnected: false,
     isLoading: true,
     username: '',
-    lastSynced: null,
+    connectedAt: null,
     errorMessage: '',
   };
 
@@ -39,6 +39,7 @@ export class IntegrationComponent {
     private ngZone: NgZone,
     private router: Router,
     private integrationSvc: IntegrationService,
+    private syncSvc: SyncService,
     private drawerSvc: FilterDrawerService,
   ) { }
 
@@ -48,7 +49,13 @@ export class IntegrationComponent {
     if (code) {
       this.handleGithubCallback(code);
     } else {
-      this.checkStatus();
+      this.user.isLoading = true;
+      this.integrationSvc.getAuthStatus().subscribe((user: IUserAuth) => {
+        this.user = user;
+        if (user.isConnected) {
+          this.listenToSyncProgress();
+        }
+      });
     }
   }
 
@@ -73,27 +80,12 @@ export class IntegrationComponent {
     });
   }
 
-  checkStatus(): void {
-    this.user.isLoading = true;
-
-    this.integrationSvc.getAuthStatus().subscribe({
-      next: (res: IGithubAuthResponse) => {
-        this.user.isConnected = res.isConnected;
-        this.user.username = res.username;
-        this.user.lastSynced = new Date(res.connectedAt);
-        this.expanded = !res.isConnected;
-      },
-      error: () => this.resetAuthState(),
-      complete: () => (this.user.isLoading = false),
-    });
-  }
-
   handleGithubCallback(code: string): void {
     this.integrationSvc.authenticateWithGithubCode(code).subscribe({
       next: (res: IGithubAuthResponse) => this.setAuthSuccess(res),
       error: (err) => this.handleAuthError(err),
       complete: () => {
-        this.completeAuthAndStartSync();
+        this.listenToSyncProgress(true);
         this.router.navigate(['/integration/result']);
       }
     });
@@ -103,7 +95,7 @@ export class IntegrationComponent {
     this.user = {
       ...res,
       isLoading: false,
-      lastSynced: res.connectedAt ? new Date(res.connectedAt) : null,
+      connectedAt: res.connectedAt ? new Date(res.connectedAt) : null,
       errorMessage: ''
     }
     setToLS(LSKeys.USER, this.user)
@@ -113,9 +105,40 @@ export class IntegrationComponent {
     window.history.replaceState({}, '', url.toString());
   }
 
-  private completeAuthAndStartSync(): void {
+  listenToSyncProgress(triggerSync: boolean = false): void {
+    // this.sync.isSyncing = true;
     this.expanded = false;
-    this.integrationSvc.startUsersync().subscribe();
+
+    if (triggerSync) {
+      this.syncSvc.startUserSync().subscribe();
+    }
+
+    const eventSource = this.syncSvc.connectToSyncStatus();
+
+    eventSource.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      console.log('---sync data', data)
+      this.ngZone.run(() => {
+        // if (data.stage) this.sync.message = data.stage;
+        // if (data.percent !== undefined) this.sync.progressPercent = data.percent;
+
+        // const isDone = data.stage?.includes('[DONE]');
+        // const isFailed = data.stage?.includes('[FAILED]');
+
+        // if (isDone || isFailed) {
+        //   eventSource.close();
+        //   this.sync.isSyncing = false;
+        // }
+        eventSource.close();
+        this.sync.isSyncing = false;
+      });
+    };
+
+    eventSource.onerror = (err) => {
+      console.error('SSE error:', err);
+      eventSource.close();
+      this.sync.isSyncing = false;
+    };
   }
 
   private handleAuthError(err: any): void {
@@ -129,7 +152,7 @@ export class IntegrationComponent {
       isConnected: false,
       isLoading: false,
       username: '',
-      lastSynced: null,
+      connectedAt: null,
       errorMessage: '',
     };
   }

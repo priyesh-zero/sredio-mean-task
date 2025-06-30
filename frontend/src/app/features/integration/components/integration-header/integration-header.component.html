@@ -19,7 +19,7 @@
             </div>
             <div class="user-info desktop" *ngIf="user.isConnected">
               <div class="info-line">
-                {{ user.username }}: {{ user.lastSynced | date: 'yyyy-MM-dd HH:mm a' }}
+                {{ user.username }}: {{ user.connectedAt | date: 'yyyy-MM-dd HH:mm a' }}
               </div>
               <div class="info-line">Sync Type: Full</div>
             </div>
@@ -40,7 +40,7 @@
             <div class="user-info-section">
               <div class="user-info mobile" *ngIf="user.isConnected">
                 <div class="info-line">
-                  {{ user.username }}: {{ user.lastSynced | date: 'yyyy-MM-dd HH:mm a' }}
+                  {{ user.username }}: {{ user.connectedAt | date: 'yyyy-MM-dd HH:mm a' }}
                 </div>
                 <div class="info-line">Sync Type: Full</div>
               </div>

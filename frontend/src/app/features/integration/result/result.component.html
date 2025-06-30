@@ -5,8 +5,8 @@
         <mat-form-field appearance="outline">
           <mat-label>Active Integrations</mat-label>
           <mat-select [(ngModel)]="selectedIntegration" (selectionChange)="onIntegrationChange()">
-            <mat-option *ngFor="let integration of integrations" [value]="integration">
-              {{ integration }}
+            <mat-option *ngFor="let integration of integrations" [value]="integration.value">
+              {{ integration.label }}
             </mat-option>
           </mat-select>
         </mat-form-field>
@@ -16,8 +16,8 @@
         <mat-form-field appearance="outline" class="custom-form-field">
           <mat-label>Entity</mat-label>
           <mat-select [(ngModel)]="selectedEntity" (selectionChange)="onEntityChange()">
-            <mat-option *ngFor="let entity of entities" [value]="entity">
-              {{ entity }}
+            <mat-option *ngFor="let entity of entities" [value]="entity.value">
+              {{ entity.label }}
             </mat-option>
           </mat-select>
         </mat-form-field>
@@ -46,7 +46,8 @@
 
   <div class="grid-container">
     <ag-grid-angular class="ag-theme-alpine grid" [theme]="'legacy'" [rowData]="rowData" [columnDefs]="columnDefs"
-      [defaultColDef]="defaultColDef" [sideBar]="false" [domLayout]="'normal'" [animateRows]="true">
+      [defaultColDef]="defaultColDef" [sideBar]="false" [domLayout]="'normal'" [gridOptions]="gridOptions"
+      [pagination]="false" [masterDetail]="true" [animateRows]="true">
     </ag-grid-angular>
     <div class="pagination-controls">
       <div style="display: flex; align-items: center; gap: 16px;">

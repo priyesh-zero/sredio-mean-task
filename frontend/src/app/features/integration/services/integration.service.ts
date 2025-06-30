@@ -1,9 +1,10 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { catchError, map, Observable, of } from 'rxjs';
 import { IGithubAuthResponse, IUserAuth } from '../models/integration.model';
 import { Router } from '@angular/router';
-import { getFromLS, LSKeys, removeFromLS } from '../utils/storage';
+import { getFromLS, LSKeys, removeFromLS, setToLS } from '../utils/storage';
+import { EntityType } from '../constants/entity.constants';
 
 @Injectable({ providedIn: 'root' })
 export class IntegrationService {
@@ -19,12 +20,32 @@ export class IntegrationService {
     window.location.href = `${this.api}/auth/github`;
   }
 
-  getAuthStatus(): Observable<IGithubAuthResponse> {
-    return this.http.get<IGithubAuthResponse>(
-      `${this.api}/auth/github/auth-status`,
-      {
-        withCredentials: true,
-      },
+  getAuthStatus(): Observable<IUserAuth> {
+    return this.http.get<IGithubAuthResponse>(`${this.api}/auth/github/auth-status`, {
+      withCredentials: true
+    }).pipe(
+      map((res) => {
+        const user: IUserAuth = {
+          isConnected: res.isConnected,
+          username: res.username,
+          connectedAt: new Date(res.connectedAt),
+          isLoading: false,
+          errorMessage: ''
+        };
+        setToLS(LSKeys.USER, user)
+        return user;
+      }),
+      catchError((err) => {
+        const fallback: IUserAuth = {
+          isConnected: false,
+          isLoading: false,
+          username: '',
+          connectedAt: null,
+          errorMessage: ''
+        };
+        setToLS(LSKeys.USER, fallback)
+        return of(fallback);
+      })
     );
   }
 
@@ -64,7 +85,7 @@ export class IntegrationService {
   // Data Fetching Methods
   // -----------------------------
 
-  getCollectionData(collection: string, page = 0, limit = 20, searchText = '') {
+  getCollectionData(collection: EntityType, page = 1, limit = 20, searchText = '') {
     const params = new HttpParams()
       .set('collection', collection)
       .set('page', page.toString())
@@ -75,23 +96,6 @@ export class IntegrationService {
       fields: string[];
       data: any[];
       total: number;
-    }>(`${this.api}/github/collection`, { params, withCredentials: true });
-  }
-
-  // -----------------------------
-  // Sync Methods (SSE + Trigger)
-  // -----------------------------
-
-  startDataSync(clientId: string) {
-    return this.http.get(`${this.api}/sync/start?id=${clientId}`, {
-      withCredentials: true,
-    });
-  }
-
-  // job api
-  startUsersync(): Observable<any> {
-    return this.http.get(`${this.api}/jobs/start-sync`, {
-      withCredentials: true,
-    });
+    }>(`${this.api}/github/collection/`, { params, withCredentials: true });
   }
 }
