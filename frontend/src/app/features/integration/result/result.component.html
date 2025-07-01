@@ -14,7 +14,7 @@
         </div>
 
         <div class="filter-item left">
-          <mat-form-field appearance="outline" class="custom-form-field">
+          <mat-form-field appearance="outline">
             <mat-label>Entity</mat-label>
             <mat-select [(ngModel)]="selectedEntity" (selectionChange)="onEntityChange()">
               <mat-option *ngFor="let entity of entities" [value]="entity.value">
@@ -26,15 +26,13 @@
       </div>
       <div class="filter-group-right">
         <div class="filter-item right">
-          <mat-form-field appearance="outline" class="custom-form-field">
-            <mat-label>Search</mat-label>
-            <input matInput [ngModel]="searchText" (ngModelChange)="onSearchInput($event)" placeholder="Type here..." />
-            <button matSuffix mat-icon-button disableRipple>
-              <mat-icon>search</mat-icon>
-            </button>
+          <mat-form-field appearance="outline">
+            <input matInput [ngModel]="searchText" (ngModelChange)="onSearchInput($event)"
+              placeholder="Type to search" />
+            <mat-icon matSuffix>search</mat-icon>
           </mat-form-field>
           <div class="filter-btn-container">
-            <button mat-fab color="primary" (click)="openFilterDrawer()" aria-label="Open Filter Drawer">
+            <button mat-mini-fab color="primary" (click)="openFilterDrawer()" aria-label="Open Filter Drawer">
               <mat-icon>tune</mat-icon>
             </button>
           </div>
