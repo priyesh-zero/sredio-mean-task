@@ -1,0 +1,60 @@
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding: 0 24px;
+
+  .toolbar-left-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 32px;
+
+    .menu-toggle {
+      display: none;
+      color: white;
+    }
+    .logo {
+      height: 36px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 16px;
+      a {
+        color: white;
+        font-weight: 500;
+        border-radius: 4px;
+        text-decoration: none;
+        padding: 6px 12px;
+    
+        &:hover,
+        &.active-link {
+          background-color: rgba(255, 255, 255, 0.1);
+        }
+      }
+    }
+  }
+
+  .search-box {
+    width: 400px;
+  }
+
+  @media (max-width: 768px) {
+    .toolbar-left-section {
+      .menu-toggle {
+        display: inline-flex;
+      }
+      .logo, .nav-links  {
+        display: none;
+      }
+    }
+    .search-box {
+      width: auto;
+    }
+  }
+  @media (max-width: 385px) {
+    height: 150px;
+  }
+}

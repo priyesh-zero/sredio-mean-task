@@ -1,0 +1,20 @@
+<mat-toolbar color="primary" class="app-header">
+  <div class="toolbar-left-section">
+    <button mat-icon-button class="menu-toggle" [matMenuTriggerFor]="navMenu" aria-label="Toggle menu">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <img src="assets/images/sredi-logo.png" alt="Logo" class="logo" />
+    <div class="nav-links">
+      <a mat-button routerLink="/integration/result" routerLinkActive="active-link">Home</a>
+      <a mat-button routerLink="/integration/timesheet" routerLinkActive="active-link">Timesheet</a>
+    </div>
+  </div>
+  <div class="search-box">
+    <integration-search-box></integration-search-box>
+  </div>
+</mat-toolbar>
+
+<mat-menu #navMenu="matMenu">
+  <button mat-menu-item routerLink="/integration/result">Home</button>
+  <button mat-menu-item routerLink="/integration/timesheet">Timesheet</button>
+</mat-menu>

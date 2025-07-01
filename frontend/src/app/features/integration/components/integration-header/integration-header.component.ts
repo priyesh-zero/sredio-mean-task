@@ -14,8 +14,6 @@ export class IntegrationHeaderComponent {
   @Output() connectClicked = new EventEmitter<void>();
   @Output() disconnectClicked = new EventEmitter<void>();
 
-  isMenuOpen = false;
-
   constructor() { }
 
   connect() {
@@ -26,7 +24,4 @@ export class IntegrationHeaderComponent {
     this.disconnectClicked.emit();
   }
 
-  toggleMenu() {
-    this.isMenuOpen = !this.isMenuOpen;
-  }
 }

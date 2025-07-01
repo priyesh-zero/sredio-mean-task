@@ -45,6 +45,7 @@ import { IntegrationLandingComponent } from './integration-landing/integration-l
 import { SearchBoxComponent } from './components/search-box/search-box.component';
 import { TimesheetComponent } from './timesheet/timesheet.component';
 import { FindUserComponent } from './find-user/find-user.component';
+import { IntegrationToolbarComponent } from './components/integration-toolbar/integration-toolbar.component';
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([
@@ -58,6 +59,7 @@ ModuleRegistry.registerModules([
   declarations: [
     IntegrationComponent,
     IntegrationHeaderComponent,
+    IntegrationToolbarComponent,
     IntegrationLandingComponent,
     ResultComponent,
     SearchResultComponent,
