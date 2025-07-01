@@ -6,6 +6,102 @@ const Repo = require("../models/github/repo");
 const User = require("../models/github/user");
 const Changelog = require("../models/github/changelog");
 
+const LOOKUP_TABLE = {
+  Orgs: {
+    fields: { repos: 1, members: 1 },
+    query: [
+      {
+        $lookup: {
+          from: "github_repos",
+          localField: "id",
+          foreignField: "owner.id",
+          as: "repos",
+          pipeline: [
+            {
+              $limit: 5,
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "github_users",
+          localField: "_id",
+          foreignField: "_organizationId",
+          as: "members",
+          pipeline: [
+            {
+              $limit: 5,
+            },
+          ],
+        },
+      },
+    ],
+  },
+  Repos: {
+    fields: { commits: 1, pulls: 1, issues: 1 },
+    query: [
+      {
+        $lookup: {
+          from: "github_commits",
+          localField: "_id",
+          foreignField: "_repositoryId",
+          as: "commits",
+          pipeline: [
+            {
+              $limit: 5,
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "github_pulls",
+          localField: "_id",
+          foreignField: "_repositoryId",
+          as: "pulls",
+          pipeline: [
+            {
+              $limit: 5,
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "github_issues",
+          localField: "url",
+          foreignField: "repository_url",
+          as: "issues",
+          pipeline: [
+            {
+              $limit: 5,
+            },
+          ],
+        },
+      },
+    ],
+  },
+  Pulls: {
+    fields: { users: 1 },
+    query: [
+      {
+        $lookup: {
+          from: "github_users",
+          localField: "user.login",
+          foreignField: "login",
+          as: "users",
+          pipeline: [
+            {
+              $limit: 5,
+            },
+          ],
+        },
+      },
+    ],
+  },
+};
+
 exports.getCollectionData = async (req, res) => {
   const { collection, page = 1, limit = 20, searchText = "" } = req.query;
 
@@ -43,6 +139,13 @@ exports.getCollectionData = async (req, res) => {
         },
       }));
 
+    const lookupQuery = LOOKUP_TABLE[collection]
+      ? LOOKUP_TABLE[collection].query
+      : [];
+    const lookupFields = LOOKUP_TABLE[collection]
+      ? LOOKUP_TABLE[collection].fields
+      : {};
+
     // Perform query
     const result = await Model.aggregate([
       {
@@ -50,6 +153,7 @@ exports.getCollectionData = async (req, res) => {
           $and: [{ userId: req.body.userId }, { $or: regexOrQuery }],
         },
       },
+      ...lookupQuery,
       {
         $facet: {
           metadata: [{ $count: "total" }],
@@ -62,7 +166,7 @@ exports.getCollectionData = async (req, res) => {
       {
         $project: {
           total: "$metadata.total",
-          data: inclusionFields,
+          data: { ...inclusionFields, ...lookupFields },
         },
       },
     ]);
@@ -74,7 +178,7 @@ exports.getCollectionData = async (req, res) => {
 
     const fields = data.length > 0 ? Object.keys(data[0]) : [];
 
-    res.json({ fields, data, total });
+    res.json({ relations: Object.keys(lookupFields), data, total });
   } catch (err) {
     console.error("getCollectionData Error:", err);
     res.status(500).json({ error: err.message });

@@ -64,6 +64,7 @@ exports.syncOrganizationMembers = async (job) => {
     job,
     OrganizationMember,
     "login",
+    { _organizationId: org._id },
   );
 
   // If there might be more commits, queue another job
@@ -164,6 +165,7 @@ exports.syncCommits = async (job) => {
     job,
     Commit,
     "url",
+    { _repositoryId: repo._id },
   );
 
   // If there might be more commits, queue another job
@@ -243,6 +245,7 @@ exports.syncPulls = async (job) => {
     job,
     Pull,
     "url",
+    { _repositoryId: repo._id },
   );
 
   // If there might be more commits, queue another job

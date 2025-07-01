@@ -45,7 +45,14 @@ const githubRequest = async (user, url, options = {}) => {
 exports.checkRateLimit = checkRateLimit;
 exports.githubRequest = githubRequest;
 
-exports.paginateRequest = async (url, user, job, model, uniqueField) => {
+exports.paginateRequest = async (
+  url,
+  user,
+  job,
+  model,
+  uniqueField,
+  metadata = {},
+) => {
   let page = job.data.page || 1;
   let concurrent_request = 0;
   const perPage = 100;
@@ -66,6 +73,7 @@ exports.paginateRequest = async (url, user, job, model, uniqueField) => {
         {
           ...entityData,
           userId: job.userId,
+          ...metadata,
         },
         { upsert: true, new: true },
       );
