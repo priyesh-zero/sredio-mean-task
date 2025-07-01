@@ -8,7 +8,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     width: 100%;
-
+    margin: 0 16px;
     .meta {
       display: flex;
       align-items: center;
@@ -22,13 +22,32 @@
         color: #4caf50;
       }
     }
+
+    .nav-links {
+      display: flex;
+      gap: 16px;
+    }
+    
+    .nav-links a {
+      text-decoration: none;
+      color: #1976d2;
+      font-weight: 500;
+      cursor: pointer;
+      transition: color 0.2s ease;
+    }
+    
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: #07192d;
+    }
+    
   }
 
   .auth-section {
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    padding: 1rem 1.5rem;
+    padding: 1rem;
 
     .disconnect-btn {
       display: inline-flex;
@@ -40,7 +59,13 @@
       }
     }
 
-    &.info-mobile {
+    .sync {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    &.info-sx {
       display: none;
     }
 
@@ -90,15 +115,17 @@
     color: rgba(0, 0, 0, 0.6);
     text-align: right;
     display: flex;
-    flex-direction: column;
-    gap: 4px;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 24px;
     .info-line {
       line-height: 1.4;
     }
-    &.desktop {
+    &.lg {
       display: flex;
     }
-    &.mobile {
+    &.sx {
       display: none;
     }
   }
@@ -119,6 +146,12 @@
   }
 }
 
+.search-box.sx {
+  display: none;
+}
+
+
+
 ::ng-deep .panel .mat-expansion-panel-header {
   height: 75px;
 }
@@ -134,20 +167,37 @@
 }
 
 @media (max-width: 768px) {
-  .user-info.desktop {
+  .header-top {
+    margin: 0!important;
+  }
+  .user-info.lg {
     display: none !important;
   }
   .user-info-section{
     display: flex;
     flex-direction: column;
     gap: 8px;
-    .sync.mobile {
+    .sync.sx {
       display: none;
     }
   }
-  .user-info.mobile {
+  .user-info.sx {
     display: flex !important;
+    flex-direction: column !important;
+    gap: 8px !important;
   }
+
+  .search-box.sx {
+    display: flex !important;
+    integration-search-box {
+      width: 100%;
+      background-color: #fff;
+    }
+  }
+}
+
+::ng-deep .mat-expansion-panel-header:hover {
+  background-color: transparent !important;
 }
 
 

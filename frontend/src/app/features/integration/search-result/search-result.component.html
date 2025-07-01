@@ -1,0 +1,21 @@
+<div class="search-result-container">
+  <h2 class="page-title">{{ title }}</h2>
+
+  <p *ngIf="searchKeyword" class="search-summary">
+    Showing results for "<strong>{{ searchKeyword }}</strong>"
+  </p>
+
+  <mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start">
+    <mat-tab *ngFor="let tab of filteredTabs" [label]="tab.label">
+      <div class="tab-content">
+        <ag-grid-angular class="ag-theme-alpine grid" [theme]="'legacy'" style="width: 100%; height: 400px;"
+          [rowData]="tab.data" [columnDefs]="getColumnDefs(tab.data)" [defaultColDef]="defaultColDef">
+        </ag-grid-angular>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+
+  <div *ngIf="filteredTabs.length === 0" class="no-results">
+    No matching data found.
+  </div>
+</div>

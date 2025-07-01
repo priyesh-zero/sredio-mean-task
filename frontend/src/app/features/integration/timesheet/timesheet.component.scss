@@ -1,0 +1,25 @@
+.timesheet-container {
+  padding: 16px;
+  .page-title {
+    margin-bottom: 8px;
+    font-size: 24px;
+    font-weight: 600;
+    color: #222;
+  }
+
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    .search-box {
+      width: 300px;
+    }
+  }
+
+  .grid-table {
+    border-radius: 8px;
+    background-color: #fff;
+  }
+}
+  

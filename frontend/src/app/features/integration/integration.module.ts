@@ -1,6 +1,15 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+
 import { AgGridModule } from 'ag-grid-angular';
+import { ModuleRegistry } from 'ag-grid-community';
+import {
+  ColumnMenuModule,
+  ColumnsToolPanelModule,
+  ContextMenuModule,
+  MasterDetailModule
+} from 'ag-grid-enterprise';
+
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
@@ -17,6 +26,7 @@ import { MatListModule } from '@angular/material/list';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatTabsModule } from '@angular/material/tabs';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
 
@@ -31,6 +41,17 @@ import { CustomFilterDialog } from './components/custom-filter-dialog/custom-fil
 import { CustomFilterList } from './components/custom-filter-list/custom-filter-list.component';
 import { PageNotFoundComponent } from './error-pages/page-not-found/page-not-found.component';
 import { IntegrationLandingComponent } from './integration-landing/integration-landing.component';
+import { SearchBoxComponent } from './components/search-box/search-box.component';
+import { TimesheetComponent } from './timesheet/timesheet.component';
+import { FindUserComponent } from './find-user/find-user.component';
+
+// Register AG Grid modules
+ModuleRegistry.registerModules([
+  ColumnsToolPanelModule,
+  ColumnMenuModule,
+  ContextMenuModule,
+  MasterDetailModule
+]);
 
 @NgModule({
   declarations: [
@@ -39,7 +60,10 @@ import { IntegrationLandingComponent } from './integration-landing/integration-l
     IntegrationLandingComponent,
     ResultComponent,
     SearchResultComponent,
+    TimesheetComponent,
+    FindUserComponent,
     PageNotFoundComponent,
+    SearchBoxComponent,
     CustomFilterDialog,
     CustomFilterList,
     FacetedFilterComponent
@@ -63,6 +87,7 @@ import { IntegrationLandingComponent } from './integration-landing/integration-l
     MatDialogModule,
     MatCheckboxModule,
     MatListModule,
+    MatTabsModule,
     MatChipsModule,
     MatSidenavModule,
     MatAutocompleteModule,

@@ -1,11 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { ColDef, GridOptions, ModuleRegistry } from 'ag-grid-community';
-import {
-  ColumnMenuModule,
-  ColumnsToolPanelModule,
-  ContextMenuModule,
-  MasterDetailModule
-} from 'ag-grid-enterprise';
+import { ColDef, GridOptions } from 'ag-grid-community';
 import { Subject, debounceTime, takeUntil } from 'rxjs';
 import { IntegrationService } from '../services/integration.service';
 import { flattenObject, generateFlatColumnDefs } from '../utils/data-flattener';
@@ -17,13 +11,6 @@ import { ICustomFilter } from '../models/integration.model';
 import { CustomFilterDialog } from '../components/custom-filter-dialog/custom-filter-dialog.component';
 import { ENTITIES, ENTITY, ENTITY_HIERARCHY, EntityOption, EntityType } from '../constants/entity.constants';
 import { INTEGRATION, IntegrationOption, INTEGRATIONS, IntegrationType } from '../constants/integration.constants';
-
-ModuleRegistry.registerModules([
-  ColumnsToolPanelModule,
-  ColumnMenuModule,
-  ContextMenuModule,
-  MasterDetailModule
-]);
 
 @Component({
   selector: 'integration-result',

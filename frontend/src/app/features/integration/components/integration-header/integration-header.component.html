@@ -3,24 +3,36 @@
   <mat-accordion>
     <mat-expansion-panel class="panel" [expanded]="expanded" [disabled]="!user.isConnected">
       <mat-expansion-panel-header>
-        <mat-panel-title>
-          <div class="header-top">
-            <div class="meta">
-              <img src="assets/images/logo.png" alt="GitHub" class="logo" />
-              <ng-container *ngIf="user.isConnected">
-                <mat-icon color="primary" class="status-icon">check_circle</mat-icon>
-                <mat-icon class="spinner-icon" *ngIf="sync.isSyncing">sync</mat-icon>
-                <mat-icon *ngIf="!sync.isSyncing">history</mat-icon>
-              </ng-container>
+
+        <!-- Wrap everything except arrow in a click-stopper div -->
+        <div class="header-top" (click)="$event.stopPropagation()">
+          <div class="meta">
+            <img src="assets/images/logo.png" alt="GitHub" class="logo" style="cursor: pointer"
+              (click)="navigateToHome($event)" />
+            <ng-container *ngIf="user.isConnected">
+              <mat-icon color="primary" class="status-icon">check_circle</mat-icon>
+              <mat-icon class="spinner-icon" *ngIf="sync.isSyncing">sync</mat-icon>
+              <mat-icon *ngIf="!sync.isSyncing">history</mat-icon>
+            </ng-container>
+            <div class="nav-links" *ngIf="user.isConnected">
+              <a routerLink="/integration/result" routerLinkActive="active" (click)="$event.stopPropagation()">Home</a>
+              <a routerLink="/integration/timesheet" routerLinkActive="active"
+                (click)="$event.stopPropagation()">Timesheet</a>
             </div>
-            <div class="user-info desktop" *ngIf="user.isConnected">
+          </div>
+          <div class="user-info lg" *ngIf="user.isConnected">
+            <div class="search-box">
+              <integration-search-box></integration-search-box>
+            </div>
+
+            <div>
               <div class="info-line">
                 {{ user.username }}: {{ user.connectedAt | date: 'yyyy-MM-dd HH:mm a' }}
               </div>
               <div class="info-line">Sync Type: Full</div>
             </div>
           </div>
-        </mat-panel-title>
+        </div>
       </mat-expansion-panel-header>
 
       <div class="auth-section">
@@ -34,14 +46,14 @@
         <ng-template #loadedSection>
           <ng-container *ngIf="user.isConnected; else connectSection">
             <div class="user-info-section">
-              <div class="user-info mobile" *ngIf="user.isConnected">
+              <div class="user-info sx">
                 <div class="info-line">
                   {{ user.username }}: {{ user.connectedAt | date: 'yyyy-MM-dd HH:mm a' }}
                 </div>
                 <div class="info-line">Sync Type: Full</div>
               </div>
-              <div class="sync mobile">
-                <div class="sync-message" *ngIf="sync.isSyncing">
+              <div>
+                <div class="sync sx" *ngIf="sync.isSyncing">
                   <mat-icon class="spinner-icon">sync</mat-icon>
                   {{ sync.message || 'Syncing in progress...' }}
                 </div>
@@ -51,7 +63,6 @@
                 <mat-icon class="remove-icon">logout</mat-icon>
               </button>
             </div>
-
           </ng-container>
 
           <ng-template #connectSection>
@@ -65,4 +76,8 @@
       </div>
     </mat-expansion-panel>
   </mat-accordion>
+</div>
+
+<div class="search-box sx">
+  <integration-search-box></integration-search-box>
 </div>
