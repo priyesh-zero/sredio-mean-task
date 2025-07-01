@@ -1,5 +1,5 @@
 <mat-drawer-container class="drawer-container">
-  <div class="integration-wrapper">
+  <div class="integration-wrapper" [ngClass]="{ 'connected': user.isConnected }">
     <integration-header [user]="user" [sync]="sync" [expanded]="expanded" (connectClicked)="connect()"
       (disconnectClicked)="disconnect()">
     </integration-header>

@@ -1,7 +1,5 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { IUserAuth, ISyncStatus } from '../../models/integration.model';
-import { Router } from '@angular/router';
-
 @Component({
   selector: 'integration-header',
   standalone: false,
@@ -16,7 +14,9 @@ export class IntegrationHeaderComponent {
   @Output() connectClicked = new EventEmitter<void>();
   @Output() disconnectClicked = new EventEmitter<void>();
 
-  constructor(private router: Router) { }
+  isMenuOpen = false;
+
+  constructor() { }
 
   connect() {
     this.connectClicked.emit();
@@ -26,8 +26,7 @@ export class IntegrationHeaderComponent {
     this.disconnectClicked.emit();
   }
 
-  navigateToHome(event: MouseEvent): void {
-    event.stopPropagation();
-    this.router.navigate(['/integration']);
+  toggleMenu() {
+    this.isMenuOpen = !this.isMenuOpen;
   }
 }

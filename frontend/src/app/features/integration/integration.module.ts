@@ -27,6 +27,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
 
@@ -81,6 +82,7 @@ ModuleRegistry.registerModules([
     MatInputModule,
     MatFormFieldModule,
     MatSelectModule,
+    MatMenuModule,
     MatExpansionModule,
     MatProgressSpinnerModule,
     MatProgressBarModule,

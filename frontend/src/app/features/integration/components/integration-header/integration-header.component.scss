@@ -1,4 +1,65 @@
-.header-section {
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding: 0 16px;
+
+  .toolbar-left-section {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 32px;
+
+    .menu-toggle {
+      display: none;
+      color: white;
+    }
+    .logo {
+      height: 36px;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 16px;
+      a {
+        color: white;
+        font-weight: 500;
+        border-radius: 4px;
+        text-decoration: none;
+        padding: 6px 12px;
+    
+        &:hover,
+        &.active-link {
+          background-color: rgba(255, 255, 255, 0.1);
+        }
+      }
+    }
+  }
+
+  .search-box {
+    width: 400px;
+  }
+
+  @media (max-width: 768px) {
+    .toolbar-left-section {
+      .menu-toggle {
+        display: inline-flex;
+      }
+      .logo, .nav-links  {
+        display: none;
+      }
+    }
+    .search-box {
+      width: auto;
+    }
+  }
+  @media (max-width: 385px) {
+    height: 150px;
+  }
+}
+
+.integration-header-section {
   .panel {
     border-radius: 4px;
     overflow: hidden;
@@ -21,24 +82,6 @@
       .status-icon {
         color: #4caf50;
       }
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 16px;
-    }
-    
-    .nav-links a {
-      text-decoration: none;
-      color: #1976d2;
-      font-weight: 500;
-      cursor: pointer;
-      transition: color 0.2s ease;
-    }
-    
-    .nav-links a:hover,
-    .nav-links a.active {
-      color: #07192d;
     }
     
   }
@@ -146,12 +189,6 @@
   }
 }
 
-.search-box.sx {
-  display: none;
-}
-
-
-
 ::ng-deep .panel .mat-expansion-panel-header {
   height: 75px;
 }
@@ -173,7 +210,7 @@
   .user-info.lg {
     display: none !important;
   }
-  .user-info-section{
+  .user-info-section {
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -186,18 +223,6 @@
     flex-direction: column !important;
     gap: 8px !important;
   }
-
-  .search-box.sx {
-    display: flex !important;
-    integration-search-box {
-      width: 100%;
-      background-color: #fff;
-    }
-  }
-}
-
-::ng-deep .mat-expansion-panel-header:hover {
-  background-color: transparent !important;
 }
 
 
