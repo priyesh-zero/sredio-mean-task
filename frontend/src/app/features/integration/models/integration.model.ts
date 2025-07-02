@@ -23,3 +23,18 @@ export interface ICustomFilter {
   options?: string[];
 }
 
+export interface IFacetOptionSuccess {
+  success: true;
+  data: {
+    [key: string]: {
+      name: string;
+      type: 'single' | 'multi';
+      options: string[];
+    };
+  };
+}
+
+export interface IFacetOptionError {
+  success: false;
+  error: string;
+}

@@ -17,10 +17,14 @@
   .filter-actions {
       display: flex;
       justify-content: space-between;
-      padding: 16px;
+      padding-top: 24px;
       border-top: 1px solid #ddd;
     }
 }
 
+.filter-container-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-  

@@ -102,21 +102,27 @@ const LOOKUP_TABLE = {
   },
 };
 
+const ModelMap = {
+  Commits: Commit,
+  Pulls: Pull,
+  Issues: Issue,
+  Orgs: Org,
+  Repos: Repo,
+  Users: User,
+  Changelog: Changelog,
+};
+
 exports.getCollectionData = async (req, res) => {
-  const { collection, page = 1, limit = 20, searchText = "" } = req.query;
+  const {
+    collection,
+    page = 1,
+    limit = 20,
+    searchText = "",
+    facet,
+  } = req.query;
 
   try {
-    const modelMap = {
-      Commits: Commit,
-      Pulls: Pull,
-      Issues: Issue,
-      Orgs: Org,
-      Repos: Repo,
-      Users: User,
-      Changelog: Changelog,
-    };
-
-    const Model = modelMap[collection];
+    const Model = ModelMap[collection];
     if (!Model) return res.status(400).json({ error: "Invalid collection" });
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
@@ -146,11 +152,17 @@ exports.getCollectionData = async (req, res) => {
       ? LOOKUP_TABLE[collection].fields
       : {};
 
+    const facetSearchQueries = facet ? JSON.parse(facet) : [];
+
     // Perform query
     const result = await Model.aggregate([
       {
         $match: {
-          $and: [{ userId: req.body.userId }, { $or: regexOrQuery }],
+          $and: [
+            { userId: req.body.userId },
+            { $or: regexOrQuery },
+            ...facetSearchQueries,
+          ],
         },
       },
       ...lookupQuery,
@@ -174,13 +186,66 @@ exports.getCollectionData = async (req, res) => {
     const { total, data } =
       result.length > 0 ? result[0] : { total: 0, data: [] };
 
-    // Return only visible fields
-
-    const fields = data.length > 0 ? Object.keys(data[0]) : [];
-
     res.json({ relations: Object.keys(lookupFields), data, total });
   } catch (err) {
     console.error("getCollectionData Error:", err);
     res.status(500).json({ error: err.message });
+  }
+};
+
+const DISTINCT_FIELDS = {
+  Repos: {
+    "owner.login": "Owner",
+    default_branch: "Default Branch",
+  },
+};
+
+const CONSTANT_FILTERS = {
+  Repos: {
+    private: {
+      name: "Private Repository",
+      type: "single",
+      options: [true, false],
+    },
+  },
+};
+
+exports.getFacetSearchOption = async (req, res) => {
+  const { collection } = req.query;
+  try {
+    const Model = ModelMap[collection];
+    if (!Model)
+      return res
+        .status(400)
+        .json({ success: false, error: "Invalid collection" });
+
+    const distinctFields = DISTINCT_FIELDS[collection];
+
+    if (!distinctFields || Object.keys(distinctFields).length === 0) {
+      return res.json({ success: true, data: {} });
+    }
+
+    const distinctFieldKeys = Object.keys(distinctFields);
+
+    const data = await Promise.all(
+      distinctFieldKeys.map((field) => Model.distinct(field)),
+    );
+
+    const filterOptions = distinctFieldKeys.reduce((acc, cur) => {
+      acc[cur] = {
+        name: distinctFields[cur],
+        type: "multi",
+        options: data[distinctFieldKeys.indexOf(cur)],
+      };
+      return acc;
+    }, {});
+
+    return res.json({
+      success: true,
+      data: { ...filterOptions, ...CONSTANT_FILTERS[collection] },
+    });
+  } catch (err) {
+    console.error("getCollectionData Error:", err);
+    res.status(500).json({ success: false, error: err.message });
   }
 };

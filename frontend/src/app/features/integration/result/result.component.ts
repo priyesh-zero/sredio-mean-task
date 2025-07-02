@@ -6,22 +6,36 @@ import { flattenObject, generateFlatColumnDefs } from '../utils/data-flattener';
 import { MatDialog } from '@angular/material/dialog';
 import { getCustomFilters } from '../utils/custom-filter';
 import { FilterDrawerService } from '../services/filter-drawer.service';
-import { FacetedFilterService } from '../services/faceted-filter.service';
+import {
+  FacetedFilterPayload,
+  FacetedFilterService,
+} from '../services/faceted-filter.service';
 import { ICustomFilter } from '../models/integration.model';
 import { CustomFilterDialog } from '../components/custom-filter-dialog/custom-filter-dialog.component';
-import { ENTITIES, ENTITY, ENTITY_HIERARCHY, EntityOption, EntityType } from '../constants/entity.constants';
-import { INTEGRATION, IntegrationOption, INTEGRATIONS, IntegrationType } from '../constants/integration.constants';
+import {
+  ENTITIES,
+  ENTITY,
+  ENTITY_HIERARCHY,
+  EntityOption,
+  EntityType,
+} from '../constants/entity.constants';
+import {
+  INTEGRATION,
+  IntegrationOption,
+  INTEGRATIONS,
+  IntegrationType,
+} from '../constants/integration.constants';
 
 @Component({
   selector: 'integration-result',
   standalone: false,
   templateUrl: './result.component.html',
-  styleUrls: ['./result.component.scss']
+  styleUrls: ['./result.component.scss'],
 })
 export class ResultComponent implements OnInit, OnDestroy {
-
   integrations: IntegrationOption[] = INTEGRATIONS;
   selectedIntegration: IntegrationType = INTEGRATION.GITHUB;
+  facetSearchQuery: FacetedFilterPayload['selected'];
 
   entities: EntityOption[] = ENTITIES;
   selectedEntity: EntityType = ENTITY.REPOS;
@@ -35,7 +49,7 @@ export class ResultComponent implements OnInit, OnDestroy {
     filter: 'agTextColumnFilter',
     floatingFilter: true,
     minWidth: 250,
-    flex: 1
+    flex: 1,
   };
 
   rowData: any[] = [];
@@ -57,49 +71,54 @@ export class ResultComponent implements OnInit, OnDestroy {
           sortable: true,
           filter: true,
           flex: 1,
-          minWidth: 250
+          minWidth: 250,
         },
-        columnDefs: []
+        columnDefs: [],
       },
       getDetailRowData: (detailParams: any) => {
         // const rowData = detailParams.data;
         // const rowId = rowData.sha || rowData.id || rowData.number;
-        this.integrationSvc.getCollectionData(ENTITY_HIERARCHY[this.selectedEntity] || ENTITY.CHANGELOG).subscribe({
-          next: (res: any) => {
-            const detailData = res?.data || [];
+        this.integrationSvc
+          .getCollectionData(
+            ENTITY_HIERARCHY[this.selectedEntity] || ENTITY.CHANGELOG,
+          )
+          .subscribe({
+            next: (res: any) => {
+              const detailData = res?.data || [];
 
-            if (!Array.isArray(detailData) || detailData.length === 0) {
+              if (!Array.isArray(detailData) || detailData.length === 0) {
+                detailParams.successCallback([]);
+                return;
+              }
+
+              const flattened = detailData.map((d: any) => flattenObject(d));
+              const generatedCols = generateFlatColumnDefs(flattened);
+
+              // Set dynamic columns using internal Grid API
+              const detailGridApi = detailParams.node.detailGridInfo?.api;
+              if (detailGridApi && generatedCols.length > 0) {
+                detailGridApi.setGridOption('columnDefs', generatedCols);
+              }
+
+              detailParams.successCallback(flattened);
+            },
+            error: () => {
               detailParams.successCallback([]);
-              return;
-            }
-
-            const flattened = detailData.map((d: any) => flattenObject(d));
-            const generatedCols = generateFlatColumnDefs(flattened);
-
-            // Set dynamic columns using internal Grid API
-            const detailGridApi = detailParams.node.detailGridInfo?.api;
-            if (detailGridApi && generatedCols.length > 0) {
-              detailGridApi.setGridOption('columnDefs', generatedCols);
-            }
-
-            detailParams.successCallback(flattened);
-          },
-          error: () => {
-            detailParams.successCallback([]);
-          }
-        });
-      }
-    }
+            },
+          });
+      },
+    },
   };
 
   constructor(
     private dialog: MatDialog,
     private integrationSvc: IntegrationService,
     private drawerSvc: FilterDrawerService,
-    private facetedFilterService: FacetedFilterService
+    private facetedFilterService: FacetedFilterService,
   ) {
     this.facetedFilterService.filters$.subscribe((updatedFilters) => {
-      console.log('Apply these filters to table', updatedFilters);
+      this.facetSearchQuery = updatedFilters?.selected;
+      this.fetchCollectionData(updatedFilters?.selected);
     });
   }
 
@@ -122,7 +141,8 @@ export class ResultComponent implements OnInit, OnDestroy {
 
   onEntityChange(): void {
     this.currentPage = 1;
-    this.fetchCollectionData();
+    this.facetedFilterService.clearFilters();
+    this.fetchCollectionData([]);
   }
 
   onSearchInput(value: string): void {
@@ -140,17 +160,23 @@ export class ResultComponent implements OnInit, OnDestroy {
     this.fetchCollectionData();
   }
 
-  fetchCollectionData(): void {
+  fetchCollectionData(facetSearchQuery = this.facetSearchQuery): void {
     this.integrationSvc
-      .getCollectionData(this.selectedEntity, this.currentPage, this.pageSize, this.searchText)
+      .getCollectionData(
+        this.selectedEntity,
+        this.currentPage,
+        this.pageSize,
+        this.searchText,
+        facetSearchQuery,
+      )
       .subscribe({
         next: (res) => {
-          const flattenedData = res.data.map(item => flattenObject(item));
+          const flattenedData = res.data.map((item) => flattenObject(item));
           const generatedCols = generateFlatColumnDefs(flattenedData);
           if (generatedCols.length > 0) {
             generatedCols[0] = {
               ...generatedCols[0],
-              cellRenderer: 'agGroupCellRenderer' // This adds the expand icon
+              cellRenderer: 'agGroupCellRenderer', // This adds the expand icon
             };
           }
           this.columnDefs = generatedCols;
@@ -164,7 +190,7 @@ export class ResultComponent implements OnInit, OnDestroy {
           this.rowData = [];
           this.totalRecords = 0;
           this.totalPages = 0;
-        }
+        },
       });
   }
 
@@ -173,7 +199,7 @@ export class ResultComponent implements OnInit, OnDestroy {
       width: '500px',
       disableClose: true,
       autoFocus: false,
-      data: { columnDefs: this.columnDefs }
+      data: { columnDefs: this.columnDefs },
     });
 
     dialogRef.afterClosed().subscribe((result: ICustomFilter[]) => {
@@ -184,7 +210,7 @@ export class ResultComponent implements OnInit, OnDestroy {
   }
 
   onFilterValueChange(updatedFilters: ICustomFilter[]) {
-    console.log('-----dddd', updatedFilters)
+    console.log('-----dddd', updatedFilters);
     // TODO: Apply filters to the grid data
   }
 
@@ -194,10 +220,10 @@ export class ResultComponent implements OnInit, OnDestroy {
       filter_data: {
         org: ['openai', 'google', 'microsoft', 'facebook', 'amazon'],
         user: ['alice', 'bob', 'charlie', 'diana', 'eve'],
-        repo: ['chatgpt-ui', 'tensorflow', 'vscode', 'react', 'angular']
-      }
+        repo: ['chatgpt-ui', 'tensorflow', 'vscode', 'react', 'angular'],
+      },
     };
-    this.facetedFilterService.setFilters(filters);
+    this.facetedFilterService.fetchFilters(this.selectedEntity);
     this.drawerSvc.openDrawer();
   }
 
