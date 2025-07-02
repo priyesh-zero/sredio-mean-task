@@ -2634,6 +2634,35 @@ adjust-sourcemap-loader@^4.0.0:
     loader-utils "^2.0.0"
     regex-parser "^2.2.11"
 
+ag-charts-community@11.3.2:
+  version "11.3.2"
+  resolved "https://registry.yarnpkg.com/ag-charts-community/-/ag-charts-community-11.3.2.tgz#7ab5b2f18aca465956e946225b62ecb3448a23d9"
+  integrity sha512-4ZshRqfeCoQKgJ8WNxLfgkKtLszIxEF9WWOSuT2Uvyyy3x0rUUPQbl98+kVh+sRyGGQ6Qj8uoStqHAhwPwgTOQ==
+  dependencies:
+    ag-charts-core "11.3.2"
+    ag-charts-locale "11.3.2"
+    ag-charts-types "11.3.2"
+
+ag-charts-core@11.3.2:
+  version "11.3.2"
+  resolved "https://registry.yarnpkg.com/ag-charts-core/-/ag-charts-core-11.3.2.tgz#6af442c4839f36256d16253c9eabaa663e0b6cd6"
+  integrity sha512-D66lTBVXRDI6vFTcmL91KeBghOx63MmWrgDSJEEhsrK1ioWeYnFcRXStX0msx60D12i+Ba+uhM9xrxgRmqzM5w==
+  dependencies:
+    ag-charts-types "11.3.2"
+
+ag-charts-enterprise@11.3.2:
+  version "11.3.2"
+  resolved "https://registry.yarnpkg.com/ag-charts-enterprise/-/ag-charts-enterprise-11.3.2.tgz#2f8b5bc6f829ad0ff7d2af76ed422bbbd743adb4"
+  integrity sha512-5HRfEI2w0IxfyWy6bpu9Db2UVPxPyxYihSHJdlJLmmCCgPNoyUqnghZqr7vnRSrh/mVSeSo2WBzxZuuphr+Wtg==
+  dependencies:
+    ag-charts-community "11.3.2"
+    ag-charts-core "11.3.2"
+
+ag-charts-locale@11.3.2:
+  version "11.3.2"
+  resolved "https://registry.yarnpkg.com/ag-charts-locale/-/ag-charts-locale-11.3.2.tgz#583b7f62d36a99a1aede8186033f1b1371dafb63"
+  integrity sha512-6DrHD53PfdVNqFAlmNkHTnlQ9QY9EzME0vvaiotUpO8boKflGivgqmfx/uNTp6AsvOrsnRBBZW4b4XSg0LKG2w==
+
 ag-charts-types@11.3.2:
   version "11.3.2"
   resolved "https://registry.yarnpkg.com/ag-charts-types/-/ag-charts-types-11.3.2.tgz#b1b4e2d273911cdd6d78ce7b4a6c561fa22796bf"
@@ -2653,6 +2682,16 @@ ag-grid-community@33.3.2, ag-grid-community@^33.3.2:
   integrity sha512-9bx0e/+ykOyLvUxHqmdy0cRVANH6JAtv0yZdnBZEXYYqBAwN+G5a4NY+2I1KvoOCYzbk8SnStG7y4hCdVAAWOQ==
   dependencies:
     ag-charts-types "11.3.2"
+
+ag-grid-enterprise@^33.3.2:
+  version "33.3.2"
+  resolved "https://registry.yarnpkg.com/ag-grid-enterprise/-/ag-grid-enterprise-33.3.2.tgz#e3be8074fab9876aaba6a7d8d0c18928158f86a0"
+  integrity sha512-wf1JMDdAk9GhWbB0WF5RIOYp4p/y6h7zJoscFsymEeFV7325Zyx0ZBQ/kQQ9R9MqnhIYp5xjpjYJ4r2rpIXH+A==
+  dependencies:
+    ag-grid-community "33.3.2"
+  optionalDependencies:
+    ag-charts-community "11.3.2"
+    ag-charts-enterprise "11.3.2"
 
 agent-base@^7.1.0, agent-base@^7.1.2:
   version "7.1.3"

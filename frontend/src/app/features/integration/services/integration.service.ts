@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { catchError, map, Observable, of } from 'rxjs';
 import {
+  ICustomFilter,
   IFacetOptionError,
   IFacetOptionSuccess,
   IGithubAuthResponse,
@@ -104,6 +105,7 @@ export class IntegrationService {
     limit = 20,
     searchText = '',
     facetOptions?: FacetedFilterPayload['selected'],
+    customFilter?: ICustomFilter[],
   ) {
     const params = new HttpParams()
       .set('collection', collection)
@@ -114,6 +116,12 @@ export class IntegrationService {
         'facet',
         facetOptions && facetOptions.length > 0
           ? JSON.stringify(facetOptions)
+          : JSON.stringify([]),
+      )
+      .set(
+        'custom',
+        customFilter && customFilter.length > 0
+          ? JSON.stringify(customFilter.filter((option) => option.value !== ''))
           : JSON.stringify([]),
       );
 

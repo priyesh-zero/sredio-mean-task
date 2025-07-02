@@ -5,6 +5,7 @@ const Org = require("../models/github/organisation");
 const Repo = require("../models/github/repo");
 const User = require("../models/github/user");
 const Changelog = require("../models/github/changelog");
+const { startOfDay, endOfDay } = require("date-fns");
 
 const LOOKUP_TABLE = {
   Orgs: {
@@ -119,6 +120,7 @@ exports.getCollectionData = async (req, res) => {
     limit = 20,
     searchText = "",
     facet,
+    custom,
   } = req.query;
 
   try {
@@ -154,6 +156,31 @@ exports.getCollectionData = async (req, res) => {
 
     const facetSearchQueries = facet ? JSON.parse(facet) : [];
 
+    const customSearchOptions = custom ? JSON.parse(custom) : [];
+
+    const customSearchQuery = customSearchOptions.map((option) => {
+      switch (option.type) {
+        case "dateRange":
+          const { from, to } = option.value;
+          return {
+            [option.field]: {
+              $lte: endOfDay(to).toISOString(),
+              $gte: startOfDay(from).toISOString(),
+            },
+          };
+        case "date":
+          const queryDate = new Date(option.value);
+          return {
+            [option.field]: {
+              $gte: startOfDay(queryDate).toISOString(),
+              $lte: endOfDay(queryDate).toISOString(),
+            },
+          };
+        default:
+          return { [option.field]: option.value };
+      }
+    });
+
     // Perform query
     const result = await Model.aggregate([
       {
@@ -162,6 +189,7 @@ exports.getCollectionData = async (req, res) => {
             { userId: req.body.userId },
             { $or: regexOrQuery },
             ...facetSearchQueries,
+            ...customSearchQuery,
           ],
         },
       },

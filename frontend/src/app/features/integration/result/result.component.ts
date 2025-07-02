@@ -118,7 +118,7 @@ export class ResultComponent implements OnInit, OnDestroy {
   ) {
     this.facetedFilterService.filters$.subscribe((updatedFilters) => {
       this.facetSearchQuery = updatedFilters?.selected;
-      this.fetchCollectionData(updatedFilters?.selected);
+      this.fetchCollectionData(updatedFilters?.selected, this.customFilters);
     });
   }
 
@@ -160,7 +160,10 @@ export class ResultComponent implements OnInit, OnDestroy {
     this.fetchCollectionData();
   }
 
-  fetchCollectionData(facetSearchQuery = this.facetSearchQuery): void {
+  fetchCollectionData(
+    facetSearchQuery = this.facetSearchQuery,
+    customFilter = this.customFilters,
+  ): void {
     this.integrationSvc
       .getCollectionData(
         this.selectedEntity,
@@ -168,6 +171,7 @@ export class ResultComponent implements OnInit, OnDestroy {
         this.pageSize,
         this.searchText,
         facetSearchQuery,
+        customFilter,
       )
       .subscribe({
         next: (res) => {
@@ -210,19 +214,11 @@ export class ResultComponent implements OnInit, OnDestroy {
   }
 
   onFilterValueChange(updatedFilters: ICustomFilter[]) {
-    console.log('-----dddd', updatedFilters);
-    // TODO: Apply filters to the grid data
+    this.customFilters = updatedFilters;
+    this.fetchCollectionData(this.facetSearchQuery, updatedFilters);
   }
 
   openFilterDrawer(): void {
-    const filters = {
-      filter_key: ['org', 'user', 'repo'],
-      filter_data: {
-        org: ['openai', 'google', 'microsoft', 'facebook', 'amazon'],
-        user: ['alice', 'bob', 'charlie', 'diana', 'eve'],
-        repo: ['chatgpt-ui', 'tensorflow', 'vscode', 'react', 'angular'],
-      },
-    };
     this.facetedFilterService.fetchFilters(this.selectedEntity);
     this.drawerSvc.openDrawer();
   }
