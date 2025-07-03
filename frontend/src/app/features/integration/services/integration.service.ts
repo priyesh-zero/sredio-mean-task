@@ -26,7 +26,7 @@ export class IntegrationService {
   constructor(
     private http: HttpClient,
     private router: Router,
-  ) { }
+  ) {}
 
   // -----------------------------
   // Authentication Methods
@@ -125,39 +125,39 @@ export class IntegrationService {
         'custom',
         customFilter && customFilter.length > 0
           ? JSON.stringify(
-            customFilter
-              .filter(option => option.value !== '' && option.value != null)
-              .map(option => {
-                if (option.type === 'date' && option.value instanceof Date) {
-                  return {
-                    ...option,
-                    value: formatDate(option.value),
-                  };
-                }
+              customFilter
+                .filter((option) => option.value !== '' && option.value != null)
+                .map((option) => {
+                  if (option.type === 'date' && option.value instanceof Date) {
+                    return {
+                      ...option,
+                      value: formatDate(option.value),
+                    };
+                  }
 
-                if (
-                  option.type === 'dateRange' &&
-                  option.value?.from &&
-                  option.value?.to
-                ) {
-                  return {
-                    ...option,
-                    value: {
-                      from: formatDate(new Date(option.value.from)),
-                      to: formatDate(new Date(option.value.to)),
-                    },
-                  };
-                }
+                  if (
+                    option.type === 'dateRange' &&
+                    option.value?.from &&
+                    option.value?.to
+                  ) {
+                    return {
+                      ...option,
+                      value: {
+                        from: formatDate(new Date(option.value.from)),
+                        to: formatDate(new Date(option.value.to)),
+                      },
+                    };
+                  }
 
-                return option;
-              })
-          )
+                  return option;
+                }),
+            )
           : JSON.stringify([]),
       );
     return this.http.get<{
       fields: string[];
       data: any[];
-      relations: string[],
+      relations: string[];
       total: number;
     }>(`${this.api}/github/collection/`, { params, withCredentials: true });
   }
@@ -191,5 +191,13 @@ export class IntegrationService {
         withCredentials: true,
       },
     );
+  }
+
+  findUser(ticketId: string) {
+    const params = new HttpParams().set('ticketId', ticketId);
+    return this.http.get(`${this.api}/github/collection/ticket`, {
+      params,
+      withCredentials: true,
+    });
   }
 }

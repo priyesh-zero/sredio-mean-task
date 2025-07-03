@@ -15,7 +15,7 @@ exports.executeJob = async (job) => {
     case "sync-pulls":
       return await jobProcessor.syncPulls(job);
     case "sync-changelog":
-      return await jobProcessor.syncPulls(job);
+      return await jobProcessor.syncChangelog(job);
     default:
       throw new Error(`Unknown job type: ${job.type}`);
   }

@@ -102,6 +102,24 @@ const LOOKUP_TABLE = {
       },
     ],
   },
+  Issues: {
+    fields: { changelog: 1 },
+    query: [
+      {
+        $lookup: {
+          from: "github_changelog",
+          localField: "number",
+          foreignField: "_issueNumber",
+          as: "changelog",
+          pipeline: [
+            {
+              $limit: 20,
+            },
+          ],
+        },
+      },
+    ],
+  },
 };
 
 const ModelMap = {
@@ -348,25 +366,33 @@ exports.findTicket = async (req, res) => {
   const { ticketId } = req.query;
 
   try {
-    const ticket = await Issue.findOne(
+    const ticket = await Issue.aggregate([
       {
-        id: ticketId,
-      },
-      {
-        id: 1,
-        title: 1,
-        body: 1,
-        draft: 1,
-        state: 1,
-        state_reason: 1,
-        closed_by: {
-          name: 1,
-          login: 1,
+        $match: {
+          id: {
+            $eq: parseInt(ticketId),
+          },
         },
-        closed_at: 1,
       },
-    );
-    res.json({ success: true, data: ticket });
+      ...LOOKUP_TABLE["Issues"].query,
+      {
+        $project: {
+          id: 1,
+          title: 1,
+          body: 1,
+          draft: 1,
+          state: 1,
+          state_reason: 1,
+          closed_by: {
+            name: 1,
+            login: 1,
+          },
+          closed_at: 1,
+          ...LOOKUP_TABLE["Issues"].fields,
+        },
+      },
+    ]);
+    res.json({ success: true, data: ticket.length > 0 ? ticket[0] : null });
   } catch (err) {
     console.error("getCollectionData Error:", err);
     res.status(500).json({ success: false, error: err.message });

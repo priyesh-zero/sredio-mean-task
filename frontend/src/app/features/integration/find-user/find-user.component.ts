@@ -1,12 +1,14 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ColDef } from 'ag-grid-community';
+import { IntegrationService } from '../services/integration.service';
+import { ENTITY } from '../constants/entity.constants';
 
 @Component({
   selector: 'integration-find-user',
   standalone: false,
   templateUrl: './find-user.component.html',
-  styleUrls: ['./find-user.component.scss']
+  styleUrls: ['./find-user.component.scss'],
 })
 export class FindUserComponent implements OnInit {
   ticketId: string = '';
@@ -21,21 +23,49 @@ export class FindUserComponent implements OnInit {
   rowData: any[] = [];
 
   columnDefs: ColDef[] = [
-    { headerName: 'User', field: 'user', sortable: true, filter: true, width: 120 },
-    { headerName: 'Action', field: 'action', sortable: true, filter: true, width: 130 },
-    { headerName: 'Message', field: 'message', flex: 1, cellStyle: { 'white-space': 'normal' } },
-    { headerName: 'Date', field: 'date', sortable: true, filter: true, width: 140 }
+    {
+      headerName: 'User',
+      field: 'user',
+      sortable: true,
+      filter: true,
+      width: 120,
+    },
+    {
+      headerName: 'Action',
+      field: 'action',
+      sortable: true,
+      filter: true,
+      width: 130,
+    },
+    {
+      headerName: 'Message',
+      field: 'message',
+      flex: 1,
+      cellStyle: { 'white-space': 'normal' },
+    },
+    {
+      headerName: 'Date',
+      field: 'date',
+      sortable: true,
+      filter: true,
+      width: 140,
+    },
   ];
 
   defaultColDef: ColDef = {
-    resizable: true
+    resizable: true,
   };
 
-  constructor(private route: ActivatedRoute) { }
+  constructor(
+    private route: ActivatedRoute,
+    private intgrationSvc: IntegrationService,
+  ) {}
 
   ngOnInit(): void {
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.subscribe((params) => {
       this.ticketId = params['ticketId'];
+
+      this.intgrationSvc.findUser(this.ticketId).subscribe(console.log);
 
       this.mockFetchTicketDetail(this.ticketId);
       this.mockFetchUserActivity(this.ticketId);
@@ -48,7 +78,7 @@ export class FindUserComponent implements OnInit {
       title: 'Fix login bug on mobile devices',
       status: 'Open',
       createdAt: '2024-07-01',
-      createdBy: 'alice'
+      createdBy: 'alice',
     };
   }
 
@@ -59,20 +89,20 @@ export class FindUserComponent implements OnInit {
         user: 'alice',
         action: 'commented',
         message: 'This issue occurs on Android 13 devices.',
-        date: '2024-07-02'
+        date: '2024-07-02',
       },
       {
         user: 'bob',
         action: 'assigned',
         message: 'Assigned to QA team.',
-        date: '2024-07-03'
+        date: '2024-07-03',
       },
       {
         user: 'carol',
         action: 'closed',
         message: 'Issue resolved in commit abc123.',
-        date: '2024-07-05'
-      }
+        date: '2024-07-05',
+      },
     ];
   }
 }

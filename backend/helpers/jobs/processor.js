@@ -123,12 +123,6 @@ exports.syncRepositories = async (job) => {
       { repositoryId: repoData._id },
       { priority: 5 },
     );
-    await jobHandler.add(
-      "sync-changelog",
-      job.userId,
-      { repositoryId: repoData._id },
-      { priority: 5 },
-    );
   }
 
   // If there might be more commits, queue another job
@@ -223,6 +217,16 @@ exports.syncIssues = async (job) => {
     );
   }
 
+  for (const issueData of allIssues) {
+    // Queue commits sync for this repository
+    await jobHandler.add(
+      "sync-changelog",
+      job.userId,
+      { issue_number: issueData.number, repo_full_name: repo.full_name },
+      { priority: 5 },
+    );
+  }
+
   return {
     synced: allIssues.length,
     page,
@@ -272,9 +276,6 @@ exports.syncPulls = async (job) => {
 
 exports.syncChangelog = async (job) => {
   const { user } = await checkRateLimit(job.userId);
-  const repo = await Repository.findById(job.data.repositoryId);
-
-  if (!repo) throw new Error("Repository not found");
 
   const {
     allEntities: allChangelogs,
@@ -282,11 +283,12 @@ exports.syncChangelog = async (job) => {
     perPage,
     page,
   } = await paginateRequest(
-    `/repos/${repo.full_name}/releases`,
+    `/repos/${job.data.repo_full_name}/issues/${job.data.issue_number}/timeline`,
     user,
     job,
     Changelog,
     "url",
+    { _issueNumber: job.data.issue_number },
   );
 
   // If there might be more commits, queue another job
@@ -295,7 +297,8 @@ exports.syncChangelog = async (job) => {
       "sync-changelog",
       job.userId,
       {
-        repositoryId: repo._id,
+        issue_number: job.data.issue_number,
+        repo_full_name: job.data.repo_full_name,
         page: page + concurrent_request,
       },
       { priority: 5 },
