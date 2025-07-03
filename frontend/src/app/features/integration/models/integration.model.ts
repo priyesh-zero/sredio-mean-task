@@ -38,3 +38,13 @@ export interface IFacetOptionError {
   success: false;
   error: string;
 }
+
+export interface IGlobalSearchSuccess {
+  success: true;
+  data: Record<string, { data: []; total: number }>;
+}
+
+export interface IGlobalSearchError {
+  success: false;
+  error: string;
+}

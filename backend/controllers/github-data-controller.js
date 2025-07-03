@@ -6,6 +6,7 @@ const Repo = require("../models/github/repo");
 const User = require("../models/github/user");
 const Changelog = require("../models/github/changelog");
 const { startOfDay, endOfDay } = require("date-fns");
+const { getAllSchemaPaths } = require("../helpers/utils");
 
 const LOOKUP_TABLE = {
   Orgs: {
@@ -132,16 +133,16 @@ exports.getCollectionData = async (req, res) => {
 
     const excludedFields = ["_id", "githubUserId", "userId", "__v"];
 
-    const inclusionFields = Object.entries(Model.schema.paths)
-      .filter(([key]) => !excludedFields.includes(key))
-      .reduce((acc, [key]) => {
+    const inclusionFields = getAllSchemaPaths(Model.schema)
+      .filter((key) => !excludedFields.includes(key))
+      .reduce((acc, key) => {
         acc[key] = 1;
         return acc;
       }, {});
 
-    const regexOrQuery = Object.entries(Model.schema.paths)
-      .filter(([key]) => !excludedFields.includes(key))
-      .map(([key]) => ({
+    const regexOrQuery = getAllSchemaPaths(Model.schema)
+      .filter((key) => !excludedFields.includes(key))
+      .map((key) => ({
         [key]: {
           $regex: new RegExp(searchText, "i"),
         },
@@ -272,6 +273,71 @@ exports.getFacetSearchOption = async (req, res) => {
       success: true,
       data: { ...filterOptions, ...CONSTANT_FILTERS[collection] },
     });
+  } catch (err) {
+    console.error("getCollectionData Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+exports.globalSearch = async (req, res) => {
+  const { searchTerm, pagination } = req.query;
+  const paginationObject = pagination ? JSON.parse(pagination) : {};
+
+  try {
+    const result = await Promise.all(
+      Object.entries(ModelMap).map(async ([collection, Model]) => {
+        const paginationQuery = paginationObject[collection] ?? {};
+
+        const page = paginationQuery["page"] ?? 1;
+        const limit = paginationQuery["limit"] ?? 20;
+
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+        const limitVal = parseInt(limit);
+
+        const excludedFields = ["_id", "githubUserId", "userId", "__v"];
+
+        const inclusionFields = getAllSchemaPaths(Model.schema)
+          .filter((key) => !excludedFields.includes(key))
+          .reduce((acc, key) => {
+            acc[key] = 1;
+            return acc;
+          }, {});
+
+        const regexOrQuery = getAllSchemaPaths(Model.schema)
+          .filter((key) => !excludedFields.includes(key))
+          .map((key) => ({
+            [key]: {
+              $regex: new RegExp(searchTerm, "i"),
+            },
+          }));
+
+        const entityResult = await Model.aggregate([
+          {
+            $match: {
+              $and: [{ userId: req.body.userId }, { $or: regexOrQuery }],
+            },
+          },
+          {
+            $facet: {
+              metadata: [{ $count: "total" }],
+              data: [{ $skip: skip }, { $limit: limitVal }],
+            },
+          },
+          {
+            $unwind: "$metadata",
+          },
+          {
+            $project: {
+              total: "$metadata.total",
+              data: { ...inclusionFields },
+            },
+          },
+        ]);
+        return [collection, entityResult];
+      }),
+    );
+
+    res.json({ success: true, data: Object.fromEntries(result) });
   } catch (err) {
     console.error("getCollectionData Error:", err);
     res.status(500).json({ success: false, error: err.message });

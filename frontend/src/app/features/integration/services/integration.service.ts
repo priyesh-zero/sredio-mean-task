@@ -6,6 +6,8 @@ import {
   IFacetOptionError,
   IFacetOptionSuccess,
   IGithubAuthResponse,
+  IGlobalSearchError,
+  IGlobalSearchSuccess,
   IUserAuth,
 } from '../models/integration.model';
 import { Router } from '@angular/router';
@@ -139,6 +141,23 @@ export class IntegrationService {
 
     return this.http.get<IFacetOptionSuccess | IFacetOptionError>(
       `${this.api}/github/collection/facet-search`,
+      {
+        params,
+        withCredentials: true,
+      },
+    );
+  }
+
+  getGlobalSearch(
+    searchTerm: string,
+    paginationQuery: Record<string, { page: number; limit: number }> = {},
+  ): Observable<IGlobalSearchSuccess | IGlobalSearchError> {
+    const params = new HttpParams()
+      .set('searchTerm', searchTerm)
+      .set('pagination', JSON.stringify(paginationQuery));
+
+    return this.http.get<IGlobalSearchSuccess | IGlobalSearchError>(
+      `${this.api}/github/collection/global-search`,
       {
         params,
         withCredentials: true,
