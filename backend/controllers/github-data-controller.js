@@ -245,12 +245,43 @@ const DISTINCT_FIELDS = {
     "owner.login": "Owner",
     default_branch: "Default Branch",
   },
+  Commits: {
+    "commit.author.name": "Commit Author",
+    "commit.committer.name": "Commiter",
+  },
+  Issues: {
+    state: "State",
+    "labels.name": "Label",
+  },
+  Pulls: {
+    state: "State",
+    "labels.name": "Label",
+  },
+  Users: {
+    type: "User Type",
+  },
+  Changelog: {
+    event: "Event Type",
+    "actor.login": "Actor",
+  },
 };
 
 const CONSTANT_FILTERS = {
   Repos: {
     private: {
       name: "Private Repository",
+      type: "single",
+      options: [true, false],
+    },
+  },
+  Issues: {
+    state_reason: {
+      name: "State Reason",
+      type: "multi",
+      options: ["completed", "reopened", "not_planned"],
+    },
+    draft: {
+      name: "Draft",
       type: "single",
       options: [true, false],
     },
@@ -383,16 +414,24 @@ exports.findTicket = async (req, res) => {
           draft: 1,
           state: 1,
           state_reason: 1,
+          user: {
+            name: 1,
+            login: 1,
+          },
           closed_by: {
             name: 1,
             login: 1,
           },
+          created_at: 1,
           closed_at: 1,
           ...LOOKUP_TABLE["Issues"].fields,
         },
       },
     ]);
-    res.json({ success: true, data: ticket.length > 0 ? ticket[0] : null });
+    res.json({
+      success: true,
+      data: ticket.map((t) => (!!t.closed_at ? t : { ...t, closed_by: null })),
+    });
   } catch (err) {
     console.error("getCollectionData Error:", err);
     res.status(500).json({ success: false, error: err.message });
