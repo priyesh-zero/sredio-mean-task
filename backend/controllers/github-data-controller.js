@@ -333,7 +333,7 @@ exports.globalSearch = async (req, res) => {
             },
           },
         ]);
-        return [collection, entityResult];
+        return [collection, entityResult.length > 0 ? entityResult[0] : {}];
       }),
     );
 
