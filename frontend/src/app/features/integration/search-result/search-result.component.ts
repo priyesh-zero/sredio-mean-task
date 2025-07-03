@@ -13,32 +13,7 @@ export class SearchResultComponent implements OnInit {
   title = 'Search Results';
   searchKeyword = '';
 
-  resultData: Record<string, any[]> = {
-    repos: [
-      {
-        id: 1,
-        name: 'Repo 1',
-        organization: 'org',
-        date: '12-06-2025',
-        owner: 'Alice',
-        user: 'Job',
-        private: 'Yes',
-        description: 'testing Repo',
-      },
-    ],
-    commits: [
-      {
-        id: 201,
-        message: 'Initial commit',
-        organization: 'org',
-        date: '12-06-2025',
-        user: 'Alice',
-        owner: 'Alice',
-        block: 'Yes',
-      },
-    ],
-    issues: [],
-  };
+  resultData: Record<string, any[]> = {};
 
   filteredTabs: { key: string; label: string; data: any[] }[] = [];
 
@@ -50,7 +25,7 @@ export class SearchResultComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private integrationSvc: IntegrationService,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
@@ -79,6 +54,7 @@ export class SearchResultComponent implements OnInit {
   }
 
   buildFilteredTabs(): void {
+    console.log('--->>', this.resultData)
     this.filteredTabs = Object.entries(this.resultData)
       .filter(([, value]) => Array.isArray(value) && value.length > 0)
       .map(([key, value]) => {

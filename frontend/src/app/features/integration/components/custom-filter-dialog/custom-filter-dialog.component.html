@@ -60,8 +60,8 @@
           (matChipInputTokenEnd)="addSelectOptionFromEvent($event)" />
       </mat-form-field>
     </div>
-
   </div>
+  <mat-error *ngIf="fieldError">{{ fieldError }}</mat-error>
 </mat-dialog-content>
 <mat-dialog-actions align="end">
   <div class="action-buttons">

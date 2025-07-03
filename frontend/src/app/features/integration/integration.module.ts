@@ -46,6 +46,7 @@ import { SearchBoxComponent } from './components/search-box/search-box.component
 import { TimesheetComponent } from './timesheet/timesheet.component';
 import { FindUserComponent } from './find-user/find-user.component';
 import { IntegrationToolbarComponent } from './components/integration-toolbar/integration-toolbar.component';
+import { DetailRendererComponent } from './components/detail-renderer/detail-renderer.component';
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([
@@ -69,7 +70,8 @@ ModuleRegistry.registerModules([
     SearchBoxComponent,
     CustomFilterDialog,
     CustomFilterList,
-    FacetedFilterComponent
+    FacetedFilterComponent,
+    DetailRendererComponent
   ],
   imports: [
     CommonModule,
@@ -106,6 +108,7 @@ ModuleRegistry.registerModules([
         // subscriptSizing: 'dynamic',
       }
     }
-  ]
+  ],
+  exports: [DetailRendererComponent]
 })
 export class IntegrationModule { }

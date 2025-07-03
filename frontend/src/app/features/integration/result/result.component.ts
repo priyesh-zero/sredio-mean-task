@@ -4,7 +4,7 @@ import { Subject, debounceTime, takeUntil } from 'rxjs';
 import { IntegrationService } from '../services/integration.service';
 import { flattenObject, generateFlatColumnDefs } from '../utils/data-flattener';
 import { MatDialog } from '@angular/material/dialog';
-import { getCustomFilters } from '../utils/custom-filter';
+import { getCustomFilters, setCustomFilters } from '../utils/custom-filter';
 import { FilterDrawerService } from '../services/filter-drawer.service';
 import {
   FacetedFilterPayload,
@@ -25,6 +25,8 @@ import {
   INTEGRATIONS,
   IntegrationType,
 } from '../constants/integration.constants';
+import { ENTITY_FIELDS } from '../constants/entity-fields';
+import { DetailRendererComponent } from '../components/detail-renderer/detail-renderer.component';
 
 @Component({
   selector: 'integration-result',
@@ -64,51 +66,12 @@ export class ResultComponent implements OnInit, OnDestroy {
 
   gridOptions: GridOptions = {
     masterDetail: true,
-    detailCellRendererParams: {
-      detailGridOptions: {
-        defaultColDef: {
-          resizable: true,
-          sortable: true,
-          filter: true,
-          flex: 1,
-          minWidth: 250,
-        },
-        columnDefs: [],
-      },
-      getDetailRowData: (detailParams: any) => {
-        // const rowData = detailParams.data;
-        // const rowId = rowData.sha || rowData.id || rowData.number;
-        this.integrationSvc
-          .getCollectionData(
-            ENTITY_HIERARCHY[this.selectedEntity] || ENTITY.CHANGELOG,
-          )
-          .subscribe({
-            next: (res: any) => {
-              const detailData = res?.data || [];
-
-              if (!Array.isArray(detailData) || detailData.length === 0) {
-                detailParams.successCallback([]);
-                return;
-              }
-
-              const flattened = detailData.map((d: any) => flattenObject(d));
-              const generatedCols = generateFlatColumnDefs(flattened);
-
-              // Set dynamic columns using internal Grid API
-              const detailGridApi = detailParams.node.detailGridInfo?.api;
-              if (detailGridApi && generatedCols.length > 0) {
-                detailGridApi.setGridOption('columnDefs', generatedCols);
-              }
-
-              detailParams.successCallback(flattened);
-            },
-            error: () => {
-              detailParams.successCallback([]);
-            },
-          });
-      },
+    components: {
+      detailRenderer: DetailRendererComponent,
     },
+    detailCellRenderer: 'detailRenderer',
   };
+
 
   constructor(
     private dialog: MatDialog,
@@ -143,6 +106,8 @@ export class ResultComponent implements OnInit, OnDestroy {
     this.currentPage = 1;
     this.facetedFilterService.clearFilters();
     this.fetchCollectionData([]);
+    setCustomFilters([]);
+    this.customFilters = [];
   }
 
   onSearchInput(value: string): void {
@@ -175,8 +140,8 @@ export class ResultComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (res) => {
-          const flattenedData = res.data.map((item) => flattenObject(item));
-          const generatedCols = generateFlatColumnDefs(flattenedData);
+          const flattenedData = res.data.map((item) => flattenObject(item, '', {}, res.relations));
+          const generatedCols = generateFlatColumnDefs(flattenedData, res.relations);
           if (generatedCols.length > 0) {
             generatedCols[0] = {
               ...generatedCols[0],
@@ -203,18 +168,29 @@ export class ResultComponent implements OnInit, OnDestroy {
       width: '500px',
       disableClose: true,
       autoFocus: false,
-      data: { columnDefs: this.columnDefs },
+      data: { columnDefs: ENTITY_FIELDS[this.selectedEntity] },
     });
 
     dialogRef.afterClosed().subscribe((result: ICustomFilter[]) => {
       if (result !== undefined && result !== null) {
-        this.customFilters = result;
+        const merged = result.map(newFilter => {
+          const existing = this.customFilters.find(f => f.field === newFilter.field);
+          return {
+            ...newFilter,
+            value: existing?.value ?? ''
+          };
+        });
+
+        this.customFilters = merged;
+        this.fetchCollectionData(this.facetSearchQuery, merged);
       }
     });
+
   }
 
   onFilterValueChange(updatedFilters: ICustomFilter[]) {
     this.customFilters = updatedFilters;
+    console.log('----da', updatedFilters)
     this.fetchCollectionData(this.facetSearchQuery, updatedFilters);
   }
 

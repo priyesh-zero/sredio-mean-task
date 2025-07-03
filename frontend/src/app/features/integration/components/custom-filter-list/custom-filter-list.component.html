@@ -2,10 +2,10 @@
     <ng-container *ngFor="let filter of filters">
         <!-- String -->
         <div *ngIf="filter.type === 'string'" class="filter-block">
+            <label class="field-label">{{ filter.label }}</label>
             <mat-form-field appearance="outline">
-                <mat-label>{{ filter.label }}</mat-label>
                 <input matInput [ngModel]="filter.value" [placeholder]="'Enter ' + filter.label.toLowerCase()"
-                    (ngModelChange)="onValueChange(filter, $event)" />
+                    (ngModelChange)="onStringValueChange(filter, $event)" />
             </mat-form-field>
         </div>
 

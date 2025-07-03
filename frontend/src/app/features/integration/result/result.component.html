@@ -43,7 +43,7 @@
     <div class="custom-filter">
       <button mat-raised-button color="primary" (click)="openFilterPopup()">Custom Filter</button>
       <div class="filter-list">
-        <integration-custom-filter-list [filters]=" customFilters"
+        <integration-custom-filter-list [filters]="customFilters"
           (filtersChange)="onFilterValueChange($event)"></integration-custom-filter-list>
       </div>
     </div>

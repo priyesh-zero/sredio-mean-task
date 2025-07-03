@@ -1,0 +1,10 @@
+<mat-tab-group mat-stretch-tabs="false" mat-align-tabs="start" [selectedIndex]="selectedTabIndex"
+  (selectedIndexChange)="onTabChange($event)">
+  <mat-tab *ngFor="let tab of tabs" [label]="tab">
+    <div class="grid-wrapper">
+      <ag-grid-angular class="ag-theme-alpine grid flex-fill" [theme]="'legacy'" [rowData]="getRowData(tab)"
+        [columnDefs]="getColumnDefs(tab)" [defaultColDef]="defaultColDef" domLayout="autoHeight"
+        style="width: 100%;"></ag-grid-angular>
+    </div>
+  </mat-tab>
+</mat-tab-group>

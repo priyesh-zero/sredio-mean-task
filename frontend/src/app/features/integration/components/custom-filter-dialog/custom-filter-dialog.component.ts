@@ -1,7 +1,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatChipInputEvent } from '@angular/material/chips';
-import { getCustomFilters } from '../../utils/custom-filter';
+import { getCustomFilters, setCustomFilters } from '../../utils/custom-filter';
 import { ICustomFilter } from '../../models/integration.model';
 
 @Component({
@@ -26,6 +26,8 @@ export class CustomFilterDialog implements OnInit {
   fieldSearch = '';
   filteredFieldOptions: { value: string; label: string }[] = [];
 
+  fieldError: string | null = null;
+
   constructor(
     public dialogRef: MatDialogRef<CustomFilterDialog>,
     @Inject(MAT_DIALOG_DATA) public data: { columnDefs: any[] }
@@ -36,7 +38,7 @@ export class CustomFilterDialog implements OnInit {
     if (this.data?.columnDefs?.length) {
       this.fieldOptions = this.data.columnDefs.map(c => ({
         value: c.field,
-        label: c.headerName,
+        label: c.label,
       }));
       this.filteredFieldOptions = [...this.fieldOptions];
     }
@@ -55,11 +57,22 @@ export class CustomFilterDialog implements OnInit {
       this.selectedField = selected.value;
       this.selectedLabel = selected.label;
     }
+    if (this.isDuplicateField(selected?.value ?? '')) {
+      this.fieldError = 'This field is already added as a filter.';
+    } else {
+      this.fieldError = '';
+    }
   }
 
   onFieldChange(field: string) {
     const match = this.fieldOptions.find(f => f.value === field);
     this.selectedLabel = match?.label ?? '';
+
+    if (this.isDuplicateField(field)) {
+      this.fieldError = 'This field is already added as a filter.';
+    } else {
+      this.fieldError = '';
+    }
   }
 
   // Updated method to support chip input behavior
@@ -79,7 +92,14 @@ export class CustomFilterDialog implements OnInit {
   }
 
   addFilter() {
+    this.fieldError = null; // Clear previous error
+
     if (!this.selectedField || !this.selectedType) return;
+
+    if (this.isDuplicateField(this.selectedField)) {
+      this.fieldError = 'This field is already added as a filter.';
+      return;
+    }
 
     const filter: ICustomFilter = {
       field: this.selectedField,
@@ -99,6 +119,7 @@ export class CustomFilterDialog implements OnInit {
     this.resetInputs();
   }
 
+
   editFilter(filter: ICustomFilter, index: number) {
     this.selectedField = filter.field;
     this.selectedLabel = filter.label;
@@ -107,6 +128,11 @@ export class CustomFilterDialog implements OnInit {
     this.selectOptions = filter.type === 'select' ? [...(filter.options ?? [])] : [];
     this.editIndex = index;
   }
+
+  isDuplicateField(field: string): boolean {
+    return this.editIndex === null && this.filters.some(f => f.field === field);
+  }
+
 
   resetInputs() {
     this.selectedField = '';
@@ -127,7 +153,7 @@ export class CustomFilterDialog implements OnInit {
   }
 
   apply() {
-    localStorage.setItem('customFilters', JSON.stringify(this.filters));
+    setCustomFilters(this.filters)
     this.dialogRef.close(this.filters);
   }
 

@@ -17,6 +17,7 @@ import {
   FacetedFilterPayload,
   FacetedFilterService,
 } from './faceted-filter.service';
+import { formatDate } from '../utils/utility';
 
 @Injectable({ providedIn: 'root' })
 export class IntegrationService {
@@ -25,7 +26,7 @@ export class IntegrationService {
   constructor(
     private http: HttpClient,
     private router: Router,
-  ) {}
+  ) { }
 
   // -----------------------------
   // Authentication Methods
@@ -123,13 +124,40 @@ export class IntegrationService {
       .set(
         'custom',
         customFilter && customFilter.length > 0
-          ? JSON.stringify(customFilter.filter((option) => option.value !== ''))
+          ? JSON.stringify(
+            customFilter
+              .filter(option => option.value !== '' && option.value != null)
+              .map(option => {
+                if (option.type === 'date' && option.value instanceof Date) {
+                  return {
+                    ...option,
+                    value: formatDate(option.value),
+                  };
+                }
+
+                if (
+                  option.type === 'dateRange' &&
+                  option.value?.from &&
+                  option.value?.to
+                ) {
+                  return {
+                    ...option,
+                    value: {
+                      from: formatDate(new Date(option.value.from)),
+                      to: formatDate(new Date(option.value.to)),
+                    },
+                  };
+                }
+
+                return option;
+              })
+          )
           : JSON.stringify([]),
       );
-
     return this.http.get<{
       fields: string[];
       data: any[];
+      relations: string[],
       total: number;
     }>(`${this.api}/github/collection/`, { params, withCredentials: true });
   }

@@ -20,24 +20,31 @@ export interface FlattenedObject {
 export function flattenObject(
   obj: Record<string, any>,
   parentKey = '',
-  result: FlattenedObject = {}
+  result: FlattenedObject = {},
+  keysToSkip: string[] = []
 ): FlattenedObject {
   Object.entries(obj).forEach(([key, value]) => {
     const fullKey = parentKey ? `${parentKey}.${key}` : key;
+
+    if (keysToSkip.includes(key)) {
+      // ✅ Don't flatten this key — just assign it directly to top level or parent level
+      result[fullKey] = value;
+      return;
+    }
 
     if (Array.isArray(value)) {
       value.forEach((item, index) => {
         const arrayKey = `${fullKey}[${index}]`;
         if (item !== null && typeof item === 'object' && !Array.isArray(item)) {
-          flattenObject(item, arrayKey, result); // handle object inside array
+          flattenObject(item, arrayKey, result, keysToSkip);
         } else {
-          result[arrayKey] = item; // handle primitive in array
+          result[arrayKey] = item;
         }
       });
     } else if (value !== null && typeof value === 'object') {
-      flattenObject(value, fullKey, result); // nested object
+      flattenObject(value, fullKey, result, keysToSkip);
     } else {
-      result[fullKey] = value; // primitive
+      result[fullKey] = value;
     }
   });
 
@@ -61,70 +68,71 @@ export function formatHeaderName(path: string): string {
     .join(' ');
 }
 
-export function generateFlatColumnDefs(data: any[]): ColDef[] {
+export function generateFlatColumnDefs(data: any[], keysToExclude: string[] = []): ColDef[] {
   if (!data?.length) return [];
 
-  const sample = flattenObject(
+  // Pick the widest object for flattening
+  const flattenedSample = flattenObject(
     data.reduce((a, b) =>
       Object.keys(flattenObject(b)).length > Object.keys(flattenObject(a)).length ? b : a
     )
   );
 
-  return Object.keys(sample).map((key) => {
-    const value = sample[key];
+  return Object.keys(flattenedSample)
+    .filter((key) => {
+      // Exclude if top-level base key matches exclusion list
+      const baseKey = key.split('.')[0].split('[')[0]; // handles "meta.created" or "meta[0].something"
+      return !keysToExclude.includes(baseKey);
+    })
+    .map((key) => {
+      const value = flattenedSample[key];
 
-    const isImage = typeof value === 'string' && value.includes('avatar');
-    const isUrl = typeof value === 'string' && /^https?:\/\//.test(value) && !isImage;
-    const isEnabledField = typeof value === 'string' && (String(value).toLowerCase() === 'enabled' || String(value).toLowerCase() === 'disabled');
-    const isBoolean = typeof value === 'boolean';
+      const isImage = typeof value === 'string' && value.includes('avatar');
+      const isUrl = typeof value === 'string' && /^https?:\/\//.test(value) && !isImage;
+      const isEnabledField =
+        typeof value === 'string' &&
+        (value.toLowerCase() === 'enabled' || value.toLowerCase() === 'disabled');
+      const isBoolean = typeof value === 'boolean';
 
-    return {
-      field: key,
-      headerName: formatHeaderName(key),
-      resizable: true,
-      sortable: true,
-      filter: true,
-      tooltipField: key,
-      valueGetter: (params) => params.data[key],
-      cellRenderer: (params: any) => {
-        const val = params.value;
+      return {
+        field: key,
+        headerName: formatHeaderName(key),
+        resizable: true,
+        sortable: true,
+        filter: true,
+        tooltipField: key,
+        valueGetter: (params) => params.data?.[key],
+        cellRenderer: (params: any) => {
+          const val = params.value;
+          if (val === undefined || val === null) return '';
 
-        // Handle undefined or null values
-        if (val === undefined || val === null) return '';
+          if (isEnabledField) {
+            const isEnabled = val.toLowerCase() === 'enabled';
+            const color = isEnabled ? '#89ad8b' : '#dd7f79';
+            const label = isEnabled ? 'Enabled' : 'Disabled';
+            return `
+              <span style="display: inline-flex; align-items: center; gap: 6px;">
+                <span style="width:12px; height:12px; border-radius:50%; background-color:${color}; display:inline-block;"></span>
+                <span>${label}</span>
+              </span>
+            `;
+          }
 
-        // For 'enabled' or 'disabled' string values
-        if (isEnabledField) {
-          const isEnabled = String(val).toLowerCase() === 'enabled';
-          const color = isEnabled ? '#89ad8b' : '#dd7f79';
-          const label = isEnabled ? 'Enabled' : 'Disabled';
+          if (isBoolean) {
+            return `<input type="checkbox" disabled ${val ? 'checked' : ''} style="accent-color: #4caf50;" />`;
+          }
 
-          return `
-            <span style="display: inline-flex; align-items: center; gap: 6px;">
-              <span style="width:12px; height:12px; border-radius:50%; background-color:${color}; display:inline-block;"></span>
-              <span>${label}</span>
-            </span>
-          `;
+          if (isImage) {
+            return `<img src="${val}" alt="avatar" style="width: 32px; height: 32px; border-radius: 50%;" />`;
+          }
+
+          if (isUrl) {
+            return `<a href="${val}" target="_blank" style="text-decoration: none; color: #1976d2;">${val}</a>`;
+          }
+
+          return val;
         }
-
-        // Booleans
-        if (isBoolean) {
-          return `<input type="checkbox" disabled ${val ? 'checked' : ''} style="accent-color: #4caf50;"  />`;
-        }
-
-        // Image (avatar)
-        if (isImage) {
-          return `<img src="${val}" alt="avatar" style="width: 32px; height: 32px; border-radius: 50%;" />`;
-        }
-
-        // URL
-        if (isUrl) {
-          return `<a href="${val}" target="_blank" style="text-decoration: none; color: #1976d2;">${val}</a>`;
-        }
-
-        return val;
-      }
-    };
-  });
+      };
+    });
 }
-
 
