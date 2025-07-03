@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
 import { AgGridModule } from 'ag-grid-angular';
 import { ModuleRegistry } from 'ag-grid-community';
@@ -7,7 +8,8 @@ import {
   ColumnMenuModule,
   ColumnsToolPanelModule,
   ContextMenuModule,
-  MasterDetailModule
+  MasterDetailModule,
+  RowGroupingModule
 } from 'ag-grid-enterprise';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -47,13 +49,17 @@ import { TimesheetComponent } from './timesheet/timesheet.component';
 import { FindUserComponent } from './find-user/find-user.component';
 import { IntegrationToolbarComponent } from './components/integration-toolbar/integration-toolbar.component';
 import { DetailRendererComponent } from './components/detail-renderer/detail-renderer.component';
+import { PaginationComponent } from './components/pagination/pagination.component';
+import { LoaderInterceptor } from './interceptors/loader.interceptor';
+import { LoaderComponent } from './components/loader/loader.component';
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([
   ColumnsToolPanelModule,
   ColumnMenuModule,
   ContextMenuModule,
-  MasterDetailModule
+  MasterDetailModule,
+  RowGroupingModule
 ]);
 
 @NgModule({
@@ -68,10 +74,12 @@ ModuleRegistry.registerModules([
     FindUserComponent,
     PageNotFoundComponent,
     SearchBoxComponent,
+    PaginationComponent,
     CustomFilterDialog,
     CustomFilterList,
     FacetedFilterComponent,
-    DetailRendererComponent
+    DetailRendererComponent,
+    LoaderComponent
   ],
   imports: [
     CommonModule,
@@ -107,6 +115,11 @@ ModuleRegistry.registerModules([
         appearance: 'outline',
         // subscriptSizing: 'dynamic',
       }
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: LoaderInterceptor,
+      multi: true
     }
   ],
   exports: [DetailRendererComponent]

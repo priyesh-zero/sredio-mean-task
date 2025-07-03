@@ -1,0 +1,5 @@
+<div class="loader" *ngIf="loaderService.loading$ | async">
+  <div class="backdrop">
+    <mat-progress-spinner mode="indeterminate" color="primary"></mat-progress-spinner>
+  </div>
+</div>

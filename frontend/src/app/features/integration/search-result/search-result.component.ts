@@ -1,8 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { ENTITIES, EntityOption } from '../constants/entity.constants';
+import { ENTITIES } from '../constants/entity.constants';
 import { IntegrationService } from '../services/integration.service';
+import { flattenObject, generateFlatColumnDefs } from '../utils/data-flattener';
 
+type TabData = {
+  key: string;
+  label: string;
+  data: any[];
+  page: number;
+  pageSize: number;
+  total: number;
+};
 @Component({
   selector: 'integration-search-result',
   standalone: false,
@@ -13,15 +22,18 @@ export class SearchResultComponent implements OnInit {
   title = 'Search Results';
   searchKeyword = '';
 
-  resultData: Record<string, any[]> = {};
+  resultData: Record<string, { data: any[]; total: number }> = {};
+  filteredTabs: TabData[] = [];
+  activeTabIndex = 0;
 
-  filteredTabs: { key: string; label: string; data: any[] }[] = [];
+  isInitialLoad: boolean = true;
 
   defaultColDef = {
     sortable: true,
     filter: true,
     resizable: true,
   };
+
   constructor(
     private route: ActivatedRoute,
     private integrationSvc: IntegrationService,
@@ -30,55 +42,83 @@ export class SearchResultComponent implements OnInit {
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
       this.searchKeyword = params['keyword']?.trim().toLowerCase() || '';
-      this.integrationSvc
-        .getGlobalSearch(this.searchKeyword, {
-          Issues: {
-            limit: 5,
-            page: 2,
-          },
-        })
-        .subscribe((response) => {
-          if (!response.success) {
-            console.log(response.error);
-            return;
-          }
-          this.resultData = Object.fromEntries(
-            Object.entries(response.data)
-              .filter(([, value]) => value.data.length > 0)
-              .map(([key, value]) => [key, value.data]),
-          );
-          this.buildFilteredTabs();
-        });
-      this.buildFilteredTabs();
+      this.loadInitialTabData();
     });
   }
 
-  buildFilteredTabs(): void {
-    console.log('--->>', this.resultData)
-    this.filteredTabs = Object.entries(this.resultData)
-      .filter(([, value]) => Array.isArray(value) && value.length > 0)
-      .map(([key, value]) => {
-        const match = ENTITIES.find(
-          (e) => e.value.toLowerCase() === key.toLowerCase(),
-        );
-        return {
-          key,
-          label: match?.label || key,
-          data: value,
-        };
+  loadInitialTabData(): void {
+    this.integrationSvc.getGlobalSearch(this.searchKeyword, {})
+      .subscribe((response) => {
+        this.isInitialLoad = false;
+        if (!response.success) {
+          console.log(response.error);
+          return;
+        }
+
+        this.resultData = response.data;
+
+        this.filteredTabs = Object.entries(this.resultData || {})
+          .filter(([, val]) => val?.data?.length > 0)
+          .map(([key, val]) => {
+            const match = ENTITIES.find(
+              (e) => e.value.toLowerCase() === key.toLowerCase()
+            );
+            return {
+              key,
+              label: match?.label || key,
+              data: [],
+              page: 1,
+              pageSize: 10,
+              total: val.total || val.data.length,
+            };
+          });
+
+        if (this.filteredTabs.length > 0) {
+          this.loadTabData(this.filteredTabs[0]);
+        }
+      }, (error) => {
+        this.isInitialLoad = false;
       });
   }
 
-  getColumnDefs(data: any[]): any[] {
-    if (!data || data.length === 0) return [];
+  loadTabData(tab: TabData): void {
+    this.integrationSvc
+      .getGlobalSearch(this.searchKeyword, {
+        [tab.key]: {
+          limit: tab.pageSize,
+          page: tab.page,
+        },
+      })
+      .subscribe((response) => {
+        if (!response.success) {
+          console.log(response.error);
+          return;
+        }
 
-    return Object.keys(data[0]).map((field) => ({
-      headerName: this.capitalize(field),
-      field,
-    }));
+        const tabResult = response.data?.[tab.key];
+        tab.data = (tabResult?.data || []).map((item: any) => flattenObject(item));
+        tab.total = tabResult?.total || tab.data.length;
+      });
   }
 
-  capitalize(word: string): string {
-    return word.charAt(0).toUpperCase() + word.slice(1);
+  onPageChange(tabKey: string, newPage: number): void {
+    const tab = this.filteredTabs.find((t) => t.key === tabKey);
+    if (!tab || tab.page === newPage) return;
+
+    tab.page = newPage;
+    this.loadTabData(tab);
+  }
+
+  onTabChange(index: number): void {
+    this.activeTabIndex = index;
+    const tab = this.filteredTabs[index];
+    if (tab && tab.data.length === 0) {
+      tab.page = 1;
+      this.loadTabData(tab);
+    }
+  }
+
+  getColumnDefs(data: any[], entity: string = ''): any[] {
+    return generateFlatColumnDefs(data, [], entity, true); // grouping true
   }
 }

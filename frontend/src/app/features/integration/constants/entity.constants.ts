@@ -26,14 +26,3 @@ export const ENTITIES: EntityOption[] = [
   { value: ENTITY.CHANGELOG, label: 'Changelog' }
 ];
 
-export const ENTITY_HIERARCHY: Record<(typeof ENTITY)[keyof typeof ENTITY], (typeof ENTITY)[keyof typeof ENTITY] | null> = {
-  [ENTITY.ORGS]: ENTITY.REPOS,
-  [ENTITY.REPOS]: ENTITY.COMMITS,
-  [ENTITY.USERS]: ENTITY.REPOS,
-  [ENTITY.PULLS]: null,
-  [ENTITY.ISSUES]: null,
-  [ENTITY.CHANGELOG]: null,
-  [ENTITY.COMMITS]: null
-};
-
-

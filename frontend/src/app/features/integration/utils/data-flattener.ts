@@ -1,4 +1,6 @@
 import { ColDef } from "ag-grid-community";
+import { ENTITY, EntityType } from "../constants/entity.constants";
+import { ENTITY_GROUPING_FIELDS } from "../constants/entity-grouping.config";
 
 export interface FlattenedObject {
   [key: string]: any;
@@ -68,7 +70,12 @@ export function formatHeaderName(path: string): string {
     .join(' ');
 }
 
-export function generateFlatColumnDefs(data: any[], keysToExclude: string[] = []): ColDef[] {
+export function generateFlatColumnDefs(
+  data: any[],
+  keysToExclude: string[] = [],
+  entity: string = '',
+  grouping: boolean = false
+): ColDef[] {
   if (!data?.length) return [];
 
   // Pick the widest object for flattening
@@ -78,10 +85,32 @@ export function generateFlatColumnDefs(data: any[], keysToExclude: string[] = []
     )
   );
 
-  return Object.keys(flattenedSample)
+  const groupFields = grouping ? ENTITY_GROUPING_FIELDS[entity.toLowerCase()] || [] : [];
+
+  // Special column(s) for specific entity
+  const specialColumns: ColDef[] = [];
+
+  if (entity === ENTITY.ISSUES) {
+    specialColumns.push({
+      headerName: 'Action',
+      field: 'action',
+      pinned: 'left',
+      cellRenderer: (params: any) => {
+        const id = params.data?.id;
+        return id
+          ? `<a href="integration/find-user?ticketId=${id}" target="_blank" style="color: #1976d2;">Find User</a>`
+          : '';
+      },
+      suppressMovable: true,
+      width: 140,
+      sortable: false,
+      filter: false,
+    });
+  }
+
+  const dynamicColumns: ColDef[] = Object.keys(flattenedSample)
     .filter((key) => {
-      // Exclude if top-level base key matches exclusion list
-      const baseKey = key.split('.')[0].split('[')[0]; // handles "meta.created" or "meta[0].something"
+      const baseKey = key.split('.')[0].split('[')[0]; // handles nested keys
       return !keysToExclude.includes(baseKey);
     })
     .map((key) => {
@@ -94,6 +123,8 @@ export function generateFlatColumnDefs(data: any[], keysToExclude: string[] = []
         (value.toLowerCase() === 'enabled' || value.toLowerCase() === 'disabled');
       const isBoolean = typeof value === 'boolean';
 
+      const isGroupField = groupFields.includes(key);
+
       return {
         field: key,
         headerName: formatHeaderName(key),
@@ -101,7 +132,9 @@ export function generateFlatColumnDefs(data: any[], keysToExclude: string[] = []
         sortable: true,
         filter: true,
         tooltipField: key,
-        valueGetter: (params) => params.data?.[key],
+        rowGroup: isGroupField,
+        // hide: groupFields.includes(key), // hide group columns from visible columns
+        valueGetter: (params: any) => params.data?.[key],
         cellRenderer: (params: any) => {
           const val = params.value;
           if (val === undefined || val === null) return '';
@@ -134,5 +167,8 @@ export function generateFlatColumnDefs(data: any[], keysToExclude: string[] = []
         }
       };
     });
+
+  return [...specialColumns, ...dynamicColumns];
 }
+
 

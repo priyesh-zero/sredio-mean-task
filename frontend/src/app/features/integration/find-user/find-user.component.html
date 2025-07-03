@@ -1,18 +1,27 @@
 <div class="find-user-container">
-  <h2 class="title">Ticket Activity: {{ ticketId }}</h2>
+  <h2 class="title">Ticket ID: {{ ticketId }}</h2>
 
   <div class="ticket-detail" *ngIf="ticketDetail">
     <div class="ticket-col">
       <p><strong>Title:</strong> {{ ticketDetail.title }}</p>
-      <p><strong>Status:</strong> {{ ticketDetail.status }}</p>
+      <p>
+        <strong>Status:</strong>
+        <span class="custom-chip" [ngClass]="ticketDetail.state">
+          {{ ticketDetail.state | titlecase }} </span>
+        <span *ngIf="ticketDetail.state === 'closed'">
+          — by {{ ticketDetail.user.name }} {{ ticketDetail.user.login }}
+        </span>
+      </p>
+
     </div>
     <div class="ticket-col">
-      <p><strong>Created At:</strong> {{ ticketDetail.createdAt }}</p>
-      <p><strong>Created By:</strong> {{ ticketDetail.createdBy }}</p>
+      <p><strong>Created At:</strong> {{ ticketDetail.created_at }}</p>
+      <p><strong>Created By:</strong> {{ ticketDetail.user.name }} {{ ticketDetail.user.login }}</p>
     </div>
   </div>
 
   <ag-grid-angular class="ag-theme-alpine grid" [theme]="'legacy'" style="width: 100%; height: 400px;"
-    [rowData]="rowData" [columnDefs]="columnDefs" [defaultColDef]="defaultColDef">
+    [rowData]="rowData" [columnDefs]="columnDefs" [defaultColDef]="defaultColDef" [gridOptions]="gridOptions"
+    [masterDetail]="true">
   </ag-grid-angular>
 </div>

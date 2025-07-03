@@ -1,0 +1,17 @@
+<div class="pagination-controls">
+  <div class="container">
+    <span class="record-range">
+      {{ startRecord }} - {{ endRecord }} of {{ totalRecords }} records
+    </span>
+
+    <button mat-button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
+      <mat-icon>chevron_left</mat-icon> Previous
+    </button>
+
+    <span>Page {{ currentPage }} of {{ totalPages }}</span>
+
+    <button mat-button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
+      Next <mat-icon>chevron_right</mat-icon>
+    </button>
+  </div>
+</div>

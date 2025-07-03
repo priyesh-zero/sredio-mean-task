@@ -1,12 +1,20 @@
+<mat-progress-bar mode="indeterminate" *ngIf="isInitialLoad"></mat-progress-bar>
 <div class="timesheet-container">
-  <h2 class="page-title">Issue Timesheet</h2>
-  <div class="header">
-    <mat-form-field appearance="outline" class="search-box">
-      <input matInput [(ngModel)]="searchTerm" placeholder="Search tickets..." />
-    </mat-form-field>
-  </div>
-
-  <ag-grid-angular class="ag-theme-alpine grid" [theme]="'legacy'" [rowData]="filteredData" [columnDefs]="columnDefs"
-    [defaultColDef]="defaultColDef" style="width: 100%; height: 400px;">
-  </ag-grid-angular>
+  <ng-container *ngIf="!isInitialLoad">
+    <h2 class="page-title">Issue Timesheet</h2>
+    <div class="header">
+      <mat-form-field appearance="outline" class="search-box">
+        <input matInput [ngModel]="searchTerm" (ngModelChange)="onSearchInput($event)"
+          placeholder="Search tickets..." />
+      </mat-form-field>
+    </div>
+    <div class="grid-container">
+      <ag-grid-angular class="ag-theme-alpine grid" [theme]="'legacy'" [rowData]="rowData" [columnDefs]="columnDefs"
+        [defaultColDef]="defaultColDef" style="width: 100%;">
+      </ag-grid-angular>
+      <integration-pagination [currentPage]="currentPage" [pageSize]="pageSize" [totalRecords]="totalRecords"
+        (pageChange)="goToPage($event)">
+      </integration-pagination>
+    </div>
+  </ng-container>
 </div>

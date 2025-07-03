@@ -82,8 +82,17 @@ export const ENTITY_FIELDS: Record<(typeof ENTITY)[keyof typeof ENTITY], EntityF
   ],
 
   [ENTITY.CHANGELOG]: [
-    { field: 'version', label: 'Version' },
-    { field: 'date', label: 'Release Date' },
-    { field: 'notes', label: 'Notes' },
+    { field: 'event', label: 'Event Type' },
+    { field: 'actor.login', label: 'Actor Username' },
+    { field: 'actor.name', label: 'Actor Name' },
+    { field: 'user.login', label: 'User Username' },
+    { field: 'user.name', label: 'User Name' },
+    { field: 'created_at', label: 'Created At' },
+    { field: 'updated_at', label: 'Updated At' },
+    { field: 'body', label: 'Comment / Body' },
+    { field: 'author_association', label: 'Author Association' },
+    { field: 'label.name', label: 'Label Name' },
+    { field: 'lock_reason', label: 'Lock Reason' },
+    { field: 'rename.to', label: 'Renamed To' },
   ],
 };

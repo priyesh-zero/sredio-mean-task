@@ -1,6 +1,10 @@
 import { Component } from '@angular/core';
 import { ColDef } from 'ag-grid-community';
 import { Router } from '@angular/router';
+import { IntegrationService } from '../services/integration.service';
+import { ENTITY } from '../constants/entity.constants';
+import { flattenObject, generateFlatColumnDefs } from '../utils/data-flattener';
+import { debounceTime, Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'integration-timesheet',
@@ -9,51 +13,76 @@ import { Router } from '@angular/router';
   styleUrls: ['./timesheet.component.scss']
 })
 export class TimesheetComponent {
+  private searchSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
+
   searchTerm = '';
 
-  rowData = [
-    {
-      ticketId: 'GH-101',
-      issueUrl: 'https://github.com/org/repo/issues/101',
-      title: 'Fix login bug',
-      status: 'Open',
-      createdBy: 'alice'
-    },
-    {
-      ticketId: 'GH-102',
-      issueUrl: 'https://github.com/org/repo/issues/102',
-      title: 'Update readme',
-      status: 'Closed',
-      createdBy: 'bob'
-    }
-  ];
-
-  columnDefs: ColDef[] = [
-    {
-      headerName: 'Action',
-      field: 'ticketId',
-      cellRenderer: (params: any) => {
-        const id = params.data.ticketId;
-        return `<a href="integration/find-user?ticketId=${id}" target="_blank">Find User</a>`;
-      }
-    },
-    { headerName: 'Ticket ID', field: 'ticketId', sortable: true, filter: true },
-    { headerName: 'Title', field: 'title', sortable: true, filter: true },
-    { headerName: 'Status', field: 'status', sortable: true, filter: true },
-    { headerName: 'Created By', field: 'createdBy', sortable: true, filter: true }
-  ];
+  columnDefs: ColDef[] = [];
 
   defaultColDef: ColDef = {
     resizable: true
   };
 
-  get filteredData() {
-    if (!this.searchTerm) return this.rowData;
-    const term = this.searchTerm.toLowerCase();
-    return this.rowData.filter(row =>
-      Object.values(row).some(value =>
-        value.toString().toLowerCase().includes(term)
-      )
-    );
+  rowData: any[] = [];
+  totalRecords = 0;
+  currentPage = 1;
+  pageSize = 20;
+  totalPages = 0;
+
+  isInitialLoad: boolean = true;
+
+  constructor(private integrationSvc: IntegrationService) { }
+
+  ngOnInit(): void {
+    this.isInitialLoad = true;
+    this.fetchCollectionData();
+    this.searchSubject
+      .pipe(debounceTime(300), takeUntil(this.destroy$))
+      .subscribe((text) => {
+        this.searchTerm = text;
+        this.currentPage = 1;
+        this.fetchCollectionData();
+      });
   }
+
+  onSearchInput(value: string): void {
+    this.searchSubject.next(value);
+  }
+
+  fetchCollectionData(): void {
+    this.integrationSvc
+      .getCollectionData(
+        ENTITY.ISSUES,
+        this.currentPage,
+        this.pageSize,
+        this.searchTerm
+      )
+      .subscribe({
+        next: (res) => {
+          const flattenedData = res.data.map((item) => flattenObject(item, '', {}, res.relations));
+          const generatedCols = generateFlatColumnDefs(flattenedData, res.relations, ENTITY.ISSUES);
+          this.columnDefs = generatedCols;
+          this.rowData = flattenedData;
+          this.totalRecords = res.total;
+          this.totalPages = Math.ceil(this.totalRecords / this.pageSize);
+        },
+        error: (err) => {
+          console.error(`Failed to fetch data for tickets`, err);
+          this.rowData = [];
+          this.totalRecords = 0;
+          this.totalPages = 0;
+        },
+        complete: () => {
+          this.isInitialLoad = false;
+        }
+      });
+  }
+
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages) return;
+    this.currentPage = page;
+    this.fetchCollectionData();
+  }
+
 }

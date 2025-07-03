@@ -15,7 +15,6 @@ import { CustomFilterDialog } from '../components/custom-filter-dialog/custom-fi
 import {
   ENTITIES,
   ENTITY,
-  ENTITY_HIERARCHY,
   EntityOption,
   EntityType,
 } from '../constants/entity.constants';
@@ -141,10 +140,11 @@ export class ResultComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (res) => {
           const flattenedData = res.data.map((item) => flattenObject(item, '', {}, res.relations));
-          const generatedCols = generateFlatColumnDefs(flattenedData, res.relations);
-          if (generatedCols.length > 0) {
-            generatedCols[0] = {
-              ...generatedCols[0],
+          const generatedCols = generateFlatColumnDefs(flattenedData, res.relations, this.selectedEntity);
+          if (generatedCols.length > 0 && res.relations.length > 0) {
+            const columnInd = this.selectedEntity === ENTITY.ISSUES ? 1 : 0
+            generatedCols[columnInd] = {
+              ...generatedCols[columnInd],
               cellRenderer: 'agGroupCellRenderer', // This adds the expand icon
             };
           }
@@ -190,7 +190,6 @@ export class ResultComponent implements OnInit, OnDestroy {
 
   onFilterValueChange(updatedFilters: ICustomFilter[]) {
     this.customFilters = updatedFilters;
-    console.log('----da', updatedFilters)
     this.fetchCollectionData(this.facetSearchQuery, updatedFilters);
   }
 

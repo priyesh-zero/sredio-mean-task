@@ -54,27 +54,8 @@
       [defaultColDef]="defaultColDef" [sideBar]="false" [domLayout]="'normal'" [gridOptions]="gridOptions"
       [pagination]="false" [masterDetail]="true" [animateRows]="true">
     </ag-grid-angular>
-    <div class="pagination-controls">
-      <div class="container">
-        <span class="record-range">
-          {{
-          ((currentPage - 1) * pageSize) + 1
-          }}-{{
-          currentPage * pageSize > totalRecords ? totalRecords : currentPage * pageSize
-          }} of {{ totalRecords }} records
-        </span>
-        <button mat-button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1">
-          Previous
-        </button>
-        <mat-icon>chevron_left</mat-icon>
-
-        <span>Page {{ currentPage }} of {{ totalPages }}</span>
-
-        <button mat-button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages">
-          Next
-        </button>
-        <mat-icon>chevron_right</mat-icon>
-      </div>
-    </div>
+    <integration-pagination [currentPage]="currentPage" [pageSize]="pageSize" [totalRecords]="totalRecords"
+      (pageChange)="goToPage($event)">
+    </integration-pagination>
   </div>
 </div>

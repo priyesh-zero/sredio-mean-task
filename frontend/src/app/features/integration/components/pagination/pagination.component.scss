@@ -1,0 +1,33 @@
+.pagination-controls {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  .container {
+    display: flex; 
+    align-items: 
+    center; gap: 16px;
+    button {
+      min-width: 80px;
+      display: flex;
+    }
+    mat-icon {
+      display: none;
+    }
+    span {
+      font-weight: 500;
+      color: #333;
+    }
+  }
+}
+@media (max-width: 600px) {
+  .pagination-controls {
+    button {
+      display: none !important;
+    }
+    mat-icon {
+      display: flex !important;
+    }
+  }
+}

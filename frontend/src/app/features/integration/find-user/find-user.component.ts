@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { ColDef } from 'ag-grid-community';
+import { ColDef, GridOptions } from 'ag-grid-community';
 import { IntegrationService } from '../services/integration.service';
 import { ENTITY } from '../constants/entity.constants';
+import { flattenObject, generateFlatColumnDefs } from '../utils/data-flattener';
 
 @Component({
   selector: 'integration-find-user',
@@ -15,42 +16,19 @@ export class FindUserComponent implements OnInit {
 
   ticketDetail: {
     title: string;
-    status: string;
-    createdAt: string;
-    createdBy: string;
+    state: string;
+    closed_at: string;
+    closed_by: string;
+    created_at: string;
+    user: {
+      name: string;
+      login: string
+    }
   } | null = null;
 
   rowData: any[] = [];
 
-  columnDefs: ColDef[] = [
-    {
-      headerName: 'User',
-      field: 'user',
-      sortable: true,
-      filter: true,
-      width: 120,
-    },
-    {
-      headerName: 'Action',
-      field: 'action',
-      sortable: true,
-      filter: true,
-      width: 130,
-    },
-    {
-      headerName: 'Message',
-      field: 'message',
-      flex: 1,
-      cellStyle: { 'white-space': 'normal' },
-    },
-    {
-      headerName: 'Date',
-      field: 'date',
-      sortable: true,
-      filter: true,
-      width: 140,
-    },
-  ];
+  columnDefs: ColDef[] = [];
 
   defaultColDef: ColDef = {
     resizable: true,
@@ -59,50 +37,57 @@ export class FindUserComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private intgrationSvc: IntegrationService,
-  ) {}
+  ) { }
+
+  gridOptions: GridOptions = {
+    masterDetail: true,
+    detailCellRendererParams: (params: any) => {
+      const detailData = params.data?.changelog ?? [];
+      const flattenedData = detailData.map((item: any) => flattenObject(item));
+      const generatedCols = generateFlatColumnDefs(flattenedData);
+      const dynamicCols = generatedCols.length > 0
+        ? generatedCols
+        : [];
+
+      return {
+        detailGridOptions: {
+          columnDefs: dynamicCols,
+          defaultColDef: {
+            resizable: true,
+            sortable: true,
+            filter: true,
+            flex: 1,
+            minWidth: 220
+          }
+        },
+        getDetailRowData: (detailParams: any) => {
+
+          detailParams.successCallback(flattenedData);
+        }
+      };
+    }
+  };
 
   ngOnInit(): void {
     this.route.queryParams.subscribe((params) => {
       this.ticketId = params['ticketId'];
-
-      this.intgrationSvc.findUser(this.ticketId).subscribe(console.log);
-
-      this.mockFetchTicketDetail(this.ticketId);
-      this.mockFetchUserActivity(this.ticketId);
+      this.intgrationSvc.findUser(this.ticketId).subscribe((response: any) => {
+        // Extract only the first record from the response, as we expect a single user who closed the ticket.
+        // This prevents issues caused by duplicate or multiple entries in the data array.
+        const firstItemOnly = response.data?.length > 0 ? [response.data[0]] : [];
+        const keysToSkip = ['changelog'];
+        const flattenedData = firstItemOnly.map((item) => flattenObject(item, '', {}, keysToSkip));
+        const generatedCols = generateFlatColumnDefs(flattenedData, keysToSkip, ENTITY.CHANGELOG);
+        if (generatedCols.length > 0) {
+          generatedCols[0] = {
+            ...generatedCols[0],
+            cellRenderer: 'agGroupCellRenderer', // This adds the expand icon
+          };
+        }
+        this.columnDefs = generatedCols;
+        this.rowData = flattenedData;
+        this.ticketDetail = firstItemOnly[0];
+      });
     });
-  }
-
-  mockFetchTicketDetail(ticketId: string) {
-    // Simulate fetching ticket detail
-    this.ticketDetail = {
-      title: 'Fix login bug on mobile devices',
-      status: 'Open',
-      createdAt: '2024-07-01',
-      createdBy: 'alice',
-    };
-  }
-
-  mockFetchUserActivity(ticketId: string): void {
-    // Simulate user activity data
-    this.rowData = [
-      {
-        user: 'alice',
-        action: 'commented',
-        message: 'This issue occurs on Android 13 devices.',
-        date: '2024-07-02',
-      },
-      {
-        user: 'bob',
-        action: 'assigned',
-        message: 'Assigned to QA team.',
-        date: '2024-07-03',
-      },
-      {
-        user: 'carol',
-        action: 'closed',
-        message: 'Issue resolved in commit abc123.',
-        date: '2024-07-05',
-      },
-    ];
   }
 }
