@@ -206,6 +206,8 @@ exports.syncIssues = async (job) => {
     job,
     Issue,
     "url",
+    {},
+    "&state=all",
   );
 
   // If there might be more commits, queue another job

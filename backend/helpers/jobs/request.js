@@ -52,6 +52,7 @@ exports.paginateRequest = async (
   model,
   uniqueField,
   metadata = {},
+  params = "",
 ) => {
   let page = job.data.page || 1;
   let concurrent_request = 0;
@@ -62,7 +63,7 @@ exports.paginateRequest = async (
     // Limit to 5 pages per job to avoid long-running jobs
     const entities = await githubRequest(
       user,
-      `${url}?per_page=${perPage}&page=${page + concurrent_request}`,
+      `${url}?per_page=${perPage}&page=${page + concurrent_request}${params}`,
     );
 
     if (entities.length === 0) break;

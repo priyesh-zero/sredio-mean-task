@@ -13,7 +13,7 @@ exports.LabelSchema = new mongoose.Schema(
   { _id: false },
 );
 
-exports.UserSchema = new mongoose.Schema(
+const UserSchema = new mongoose.Schema(
   {
     name: { type: String, default: null },
     email: { type: String, default: null },
@@ -39,4 +39,33 @@ exports.UserSchema = new mongoose.Schema(
     user_view_type: { type: String },
   },
   { strict: false },
+);
+
+exports.UserSchema = UserSchema;
+
+exports.MilestoneSchema = new mongoose.Schema(
+  {
+    url: { type: String, required: true },
+    html_url: { type: String, required: true },
+    labels_url: { type: String, required: true },
+    id: { type: Number, required: true },
+    node_id: { type: String, required: true },
+    number: { type: Number, required: true },
+    state: {
+      type: String,
+      enum: ["open", "closed"],
+      default: "open",
+      required: true,
+    },
+    title: { type: String, required: true },
+    description: { type: String, default: null },
+    creator: { type: UserSchema, default: null },
+    open_issues: { type: Number, required: true },
+    closed_issues: { type: Number, required: true },
+    created_at: { type: Date, required: true },
+    updated_at: { type: Date, required: true },
+    closed_at: { type: Date, default: null },
+    due_on: { type: Date, default: null },
+  },
+  { _id: false },
 );

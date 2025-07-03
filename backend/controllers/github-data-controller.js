@@ -343,3 +343,32 @@ exports.globalSearch = async (req, res) => {
     res.status(500).json({ success: false, error: err.message });
   }
 };
+
+exports.findTicket = async (req, res) => {
+  const { ticketId } = req.query;
+
+  try {
+    const ticket = await Issue.findOne(
+      {
+        id: ticketId,
+      },
+      {
+        id: 1,
+        title: 1,
+        body: 1,
+        draft: 1,
+        state: 1,
+        state_reason: 1,
+        closed_by: {
+          name: 1,
+          login: 1,
+        },
+        closed_at: 1,
+      },
+    );
+    res.json({ success: true, data: ticket });
+  } catch (err) {
+    console.error("getCollectionData Error:", err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+};

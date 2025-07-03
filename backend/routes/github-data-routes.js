@@ -10,4 +10,6 @@ router.get("/facet-search", dataController.getFacetSearchOption);
 
 router.get("/global-search", dataController.globalSearch);
 
+router.get("/ticket", dataController.findTicket);
+
 module.exports = router;
