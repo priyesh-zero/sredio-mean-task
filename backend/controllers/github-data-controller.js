@@ -7,6 +7,7 @@ const User = require("../models/github/user");
 const Changelog = require("../models/github/changelog");
 const { startOfDay, endOfDay } = require("date-fns");
 const { getAllSchemaPaths } = require("../helpers/utils");
+const { parseSorting, parseColumnFilters } = require("../helpers/grid-filters");
 
 const LOOKUP_TABLE = {
   Orgs: {
@@ -140,6 +141,8 @@ exports.getCollectionData = async (req, res) => {
     searchText = "",
     facet,
     custom,
+    columnSorts,
+    columnFilters,
   } = req.query;
 
   try {
@@ -177,6 +180,10 @@ exports.getCollectionData = async (req, res) => {
 
     const customSearchOptions = custom ? JSON.parse(custom) : [];
 
+    const sort = parseSorting(columnSorts);
+
+    const columnQuery = parseColumnFilters(columnFilters);
+
     const customSearchQuery = customSearchOptions.map((option) => {
       switch (option.type) {
         case "dateRange":
@@ -209,6 +216,7 @@ exports.getCollectionData = async (req, res) => {
             { $or: regexOrQuery },
             ...facetSearchQueries,
             ...customSearchQuery,
+            ...columnQuery,
           ],
         },
       },
@@ -216,9 +224,10 @@ exports.getCollectionData = async (req, res) => {
       {
         $facet: {
           metadata: [{ $count: "total" }],
-          data: [{ $skip: skip }, { $limit: limitVal }],
+          data: [...sort, { $skip: skip }, { $limit: limitVal }],
         },
       },
+
       {
         $unwind: "$metadata",
       },
