@@ -70,6 +70,22 @@ export function formatHeaderName(path: string): string {
     .join(' ');
 }
 
+export function getAllUniqueKeys(
+  records: Record<string, any>[],
+  keysToSkip: string[] = []
+): string[] {
+  const skipSet = new Set(keysToSkip);
+
+  return Array.from(
+    new Set(
+      records.flatMap(record =>
+        Object.keys(record).filter(key => !skipSet.has(key))
+      )
+    )
+  );
+}
+
+
 export function generateFlatColumnDefs(
   data: any[],
   keysToExclude: string[] = [],
@@ -77,13 +93,7 @@ export function generateFlatColumnDefs(
   grouping: boolean = false
 ): ColDef[] {
   if (!data?.length) return [];
-
-  // Pick the widest object for flattening
-  const flattenedSample = flattenObject(
-    data.reduce((a, b) =>
-      Object.keys(flattenObject(b)).length > Object.keys(flattenObject(a)).length ? b : a
-    )
-  );
+  const allKeys = getAllUniqueKeys(data, keysToExclude);
 
   const groupFields = grouping ? ENTITY_GROUPING_FIELDS[entity.toLowerCase()] || [] : [];
 
@@ -108,23 +118,9 @@ export function generateFlatColumnDefs(
     });
   }
 
-  const dynamicColumns: ColDef[] = Object.keys(flattenedSample)
-    .filter((key) => {
-      const baseKey = key.split('.')[0].split('[')[0]; // handles nested keys
-      return !keysToExclude.includes(baseKey);
-    })
+  const dynamicColumns: ColDef[] = allKeys
     .map((key) => {
-      const value = flattenedSample[key];
-
-      const isImage = typeof value === 'string' && value.includes('avatar');
-      const isUrl = typeof value === 'string' && /^https?:\/\//.test(value) && !isImage;
-      const isEnabledField =
-        typeof value === 'string' &&
-        (value.toLowerCase() === 'enabled' || value.toLowerCase() === 'disabled');
-      const isBoolean = typeof value === 'boolean';
-
       const isGroupField = groupFields.includes(key);
-
       return {
         field: key,
         headerName: formatHeaderName(key),
@@ -134,12 +130,19 @@ export function generateFlatColumnDefs(
         floatingFilter: true,
         tooltipField: key,
         rowGroup: isGroupField,
-        // hide: groupFields.includes(key), // hide group columns from visible columns
         valueGetter: (params: any) => params.data?.[key],
         cellRenderer: (params: any) => {
           const val = params.value;
+          const isImage = typeof val === 'string' && val.includes('avatar');
+          const isUrl = typeof val === 'string' && /^https?:\/\//.test(val) && !isImage;
+          const isEnabledField =
+            typeof val === 'string' &&
+            (val.toLowerCase() === 'enabled' || val.toLowerCase() === 'disabled');
+          const isBoolean = typeof val === 'boolean';
+
           if (val === undefined || val === null) return '';
 
+          // Enabled pill
           if (isEnabledField) {
             const isEnabled = val.toLowerCase() === 'enabled';
             const color = isEnabled ? '#89ad8b' : '#dd7f79';
@@ -152,20 +155,31 @@ export function generateFlatColumnDefs(
             `;
           }
 
+          // Boolean checkbox
           if (isBoolean) {
             return `<input type="checkbox" disabled ${val ? 'checked' : ''} style="accent-color: #4caf50;" />`;
           }
 
+          // Avatar image
           if (isImage) {
             return `<img src="${val}" alt="avatar" style="width: 32px; height: 32px; border-radius: 50%;" />`;
           }
 
+          // URL link
           if (isUrl) {
             return `<a href="${val}" target="_blank" style="text-decoration: none; color: #1976d2;">${val}</a>`;
           }
 
+          // Date 
+          if (typeof val === 'string' && !isNaN(Date.parse(val))) {
+            // Date.parse recognised it → convert to local date string
+            return new Date(val).toLocaleDateString();   // e.g. "29/6/2025" in IST
+          }
+
+          // Fallback
           return val;
         }
+
       };
     });
 
