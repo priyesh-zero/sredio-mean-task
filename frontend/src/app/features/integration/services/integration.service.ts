@@ -26,7 +26,7 @@ export class IntegrationService {
   constructor(
     private http: HttpClient,
     private router: Router,
-  ) {}
+  ) { }
 
   // -----------------------------
   // Authentication Methods
@@ -109,12 +109,16 @@ export class IntegrationService {
     searchText = '',
     facetOptions?: FacetedFilterPayload['selected'],
     customFilter?: ICustomFilter[],
+    columnSorts?: any[],
+    columnFilters?: any
   ) {
     const params = new HttpParams()
       .set('collection', collection)
       .set('page', page.toString())
       .set('limit', limit.toString())
       .set('searchText', searchText)
+      .set('columnSorts', JSON.stringify(columnSorts ?? []))
+      .set('columnFilters', JSON.stringify(columnFilters ?? {}))
       .set(
         'facet',
         facetOptions && facetOptions.length > 0
@@ -125,33 +129,33 @@ export class IntegrationService {
         'custom',
         customFilter && customFilter.length > 0
           ? JSON.stringify(
-              customFilter
-                .filter((option) => option.value !== '' && option.value != null)
-                .map((option) => {
-                  if (option.type === 'date' && option.value instanceof Date) {
-                    return {
-                      ...option,
-                      value: formatDate(option.value),
-                    };
-                  }
+            customFilter
+              .filter((option) => option.value !== '' && option.value != null)
+              .map((option) => {
+                if (option.type === 'date' && option.value instanceof Date) {
+                  return {
+                    ...option,
+                    value: formatDate(option.value),
+                  };
+                }
 
-                  if (
-                    option.type === 'dateRange' &&
-                    option.value?.from &&
-                    option.value?.to
-                  ) {
-                    return {
-                      ...option,
-                      value: {
-                        from: formatDate(new Date(option.value.from)),
-                        to: formatDate(new Date(option.value.to)),
-                      },
-                    };
-                  }
+                if (
+                  option.type === 'dateRange' &&
+                  option.value?.from &&
+                  option.value?.to
+                ) {
+                  return {
+                    ...option,
+                    value: {
+                      from: formatDate(new Date(option.value.from)),
+                      to: formatDate(new Date(option.value.to)),
+                    },
+                  };
+                }
 
-                  return option;
-                }),
-            )
+                return option;
+              }),
+          )
           : JSON.stringify([]),
       );
     return this.http.get<{

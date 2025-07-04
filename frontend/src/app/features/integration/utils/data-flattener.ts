@@ -29,7 +29,7 @@ export function flattenObject(
     const fullKey = parentKey ? `${parentKey}.${key}` : key;
 
     if (keysToSkip.includes(key)) {
-      // ✅ Don't flatten this key — just assign it directly to top level or parent level
+      // Don't flatten this key — just assign it directly to top level or parent level
       result[fullKey] = value;
       return;
     }
@@ -130,7 +130,8 @@ export function generateFlatColumnDefs(
         headerName: formatHeaderName(key),
         resizable: true,
         sortable: true,
-        filter: true,
+        filter: 'agTextColumnFilter',
+        floatingFilter: true,
         tooltipField: key,
         rowGroup: isGroupField,
         // hide: groupFields.includes(key), // hide group columns from visible columns

@@ -61,7 +61,6 @@ export class FindUserComponent implements OnInit {
           }
         },
         getDetailRowData: (detailParams: any) => {
-
           detailParams.successCallback(flattenedData);
         }
       };

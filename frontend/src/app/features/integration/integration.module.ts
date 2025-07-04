@@ -3,13 +3,15 @@ import { CommonModule } from '@angular/common';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
 import { AgGridModule } from 'ag-grid-angular';
-import { ModuleRegistry } from 'ag-grid-community';
+import { ModuleRegistry, PaginationModule } from 'ag-grid-community';
 import {
   ColumnMenuModule,
   ColumnsToolPanelModule,
   ContextMenuModule,
   MasterDetailModule,
-  RowGroupingModule
+  RowGroupingModule,
+  ServerSideRowModelApiModule,
+  ServerSideRowModelModule,
 } from 'ag-grid-enterprise';
 
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -59,7 +61,10 @@ ModuleRegistry.registerModules([
   ColumnMenuModule,
   ContextMenuModule,
   MasterDetailModule,
-  RowGroupingModule
+  RowGroupingModule,
+  ServerSideRowModelModule,
+  ServerSideRowModelApiModule,
+  PaginationModule,
 ]);
 
 @NgModule({

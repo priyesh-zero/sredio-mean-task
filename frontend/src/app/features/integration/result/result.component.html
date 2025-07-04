@@ -50,12 +50,8 @@
   </div>
 
   <div class="grid-container">
-    <ag-grid-angular class="ag-theme-alpine grid" [theme]="'legacy'" [rowData]="rowData" [columnDefs]="columnDefs"
-      [defaultColDef]="defaultColDef" [sideBar]="false" [domLayout]="'normal'" [gridOptions]="gridOptions"
-      [pagination]="false" [masterDetail]="true" [animateRows]="true">
+    <ag-grid-angular class="ag-theme-alpine grid" [theme]="'legacy'" [sideBar]="false" [domLayout]="'normal'"
+      [gridOptions]="gridOptions" [animateRows]="true" [pagination]="true" (gridReady)="onGridReady($event)">
     </ag-grid-angular>
-    <integration-pagination [currentPage]="currentPage" [pageSize]="pageSize" [totalRecords]="totalRecords"
-      (pageChange)="goToPage($event)">
-    </integration-pagination>
   </div>
 </div>
